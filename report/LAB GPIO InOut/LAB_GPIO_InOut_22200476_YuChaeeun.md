@@ -4,9 +4,7 @@
 
 **Author/Partner:** 유채은
 
-**Github:** repository link
-
-**Demo Video:** Youtube link
+**Github:** https://github.com/chaeeunyu/EC-STM32F4-22200476.git
 
 **PDF version:**
 
@@ -77,11 +75,7 @@ Fill-in the blanks in the header files to complete the definitions for the provi
 
 
 
-### Description with Code
-
-- Lab source code: 깃허브 LINK 여기에 넣어 <-----------------------------------------------
-
-
+### Code
 
 #### GPIO_init()
 
