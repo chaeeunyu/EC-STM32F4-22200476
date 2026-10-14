@@ -23,7 +23,7 @@ void setup(void){
     // Intialize System Clock
     RCC_HSI_init();    
 
-    // // Problem 1 initialize
+    // Problem 1 initialize
     // FND_init(pinFND);
     // FND_select_otype(pinFND, PUSH_PULL);  
     // FND_select_ospeed(pinFND, MEDSPEED);
@@ -62,7 +62,7 @@ int main(void) {
     //     FND_display(numDisplay2);
     //     delay_ms_HSI(1);	
     // }
-    // // ---------------------------------------------
+    // ---------------------------------------------
 
     // -------------------- Problem 2 -----------------------
     int buttonState = HIGH; // coz of pull-up
