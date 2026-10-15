@@ -44,8 +44,8 @@ void EXTI_init(PinName_t pinName, uint32_t trig_type, uint32_t priority){
 	if (trig_type == FALL) 		EXTI->FTSR |= 1UL << pin;  // Falling trigger enable 
 	else if	(trig_type == RISE) EXTI->RTSR |= 1UL << pin;   // Rising trigger enable 
 	else if	(trig_type == BOTH) {			// Both falling/rising trigger enable
-		EXTI->RTSR |= pin; 
-		EXTI->FTSR |= pin;
+		EXTI->RTSR |= (1UL << pin); 
+		EXTI->FTSR |= (1UL << pin);
 	} 
 	
 	// Enable EXTI, with Not-Masked Interrupt Request 
@@ -99,5 +99,5 @@ void clear_pending_EXTI(PinName_t pinName){
 	ecPinmap(pinName, &Port, &pin);
 
 	// clear by writing 1 to the pending bit
-	EXTI->PR  |= (1 << pin);     
+	EXTI->PR  = (1 << pin);     
 }

@@ -8,6 +8,18 @@ Language/ver     : C++ in VS Code
 Description      : Stepper Library. ecStepper2.h
 /----------------------------------------------------------------*/
 
+/**
+ * @file    ecStepper2.h
+ * @brief   Stepper motor library (28BYJ-48, unipolar) using an FSM for full-step and half-step drive.
+ *
+ * Embedded Controller by Young-Keun Kim - Handong Global University
+ *
+ * @author  Yu Chaeeun
+ * @date    Created: 05-03-2021, Modified: Oct-12-2026
+ * @note    Language: C (VS Code, PlatformIO)
+ */
+
+
 #include "stm32f411xe.h"
 #include "ecPinNames.h"
 #include "ecRCC2.h"
@@ -21,42 +33,81 @@ Description      : Stepper Library. ecStepper2.h
  extern "C" {
 #endif /* __cplusplus */
 
+
+/**
+ * @defgroup Stepper Stepper Motor
+ * @brief    Drive a 4-phase stepper motor in full-step or half-step mode,
+ *           with speed [rpm], step count, direction, and pause control.
+ * @{
+ */
+
+
+
 // Stepper Mode
-#define HALF 0
-#define FULL 1	 
-#define DIR_CCW 0
-#define DIR_CW 1	  
+#define HALF 0     /**< Half-step mode (8 states) */
+#define FULL 1	    /**< Full-step mode (4 states) */
+#define DIR_CCW 0  /**< Counter-clockwise direction */
+#define DIR_CW 1   /**< Clockwise direction */
 
 // Stepper Motor Spec
-// 28BYJ-48 : 64 steps/rev x 1/32 gear = 2048   ---> full step???
-#define FULLSTEP_PER_REV  (64*32)		
-#define HALFSTEP_PER_REV  (64*32*2)		
+// 28BYJ-48 : 64 steps/rev x 1/32 gear = 2048   
+#define FULLSTEP_PER_REV  (64*32)		    /**< Full steps per output-shaft revolution (2048) */
+#define HALFSTEP_PER_REV  (64*32*2)		 /**< Half steps per output-shaft revolution (4096) */
 
-//State number 
+/** FSM state numbers. Full-step uses S0~S3, half-step uses S0~S7. */
 typedef enum {
 	S0, S1, S2, S3, S4, S5, S6, S7
 } StateNum;
 
-// FULL stepping sequence  - FSM
+/** One FSM state: next state for each direction, and the coil output pattern. */
 typedef struct {	
-  uint32_t next[2];
-  uint8_t out[4];
+  uint32_t next[2];   /**< Next state. Index = direction (DIR_CCW or DIR_CW) */
+  uint8_t out[4];    /**< Output levels for coils A, B, A', B' */
 } StateStepper_t;
 
-// Initialization of Stepper Motor
+
+
+/**
+ * @brief  Select the stepping mode and initialize the 4 motor pins as outputs.
+ * @param[in] mode        FULL or HALF
+ * @param[in] pinStepper  Array of 4 pins, in the order A, B, A', B'
+ * @note   SysTick_init() must also be called before stepper_step(), since it uses delay_ms().
+ */
 void stepper_init(uint32_t mode, PinName_t *pinStepper);
 
-// Converts Motor [rpm] to step delay in [msec]
+/**
+ * @brief  Set the motor speed by converting [rpm] to the step period [ms].
+ * @param[in] speedRPM  Motor speed [rpm]
+ * @note   The step period has 1 ms resolution and is computed with HALFSTEP_PER_REV,
+ *         so speeds above about 14 rpm give a 0 ms period.
+ */
 void stepper_speed (uint32_t speedRPM);
 
-// Run Stepper Motor for given steps and direction
+/**
+ * @brief  Rotate the motor for a given number of steps (blocking).
+ * @param[in] steps      Number of steps
+ * @param[in] direction  DIR_CW or DIR_CCW
+ * @note   Returns immediately if stepper_init() was not called.
+ *         While paused by stepper_stop(), the function waits.
+ */
 void stepper_step(uint32_t steps, uint32_t direction);
 
-// Stepper Motor Output for given state
+/**
+ * @brief  Write the coil output pattern of an FSM state to the motor pins.
+ * @param[in] state  FSM state number (S0~S3 for FULL, S0~S7 for HALF)
+ * @note   Called internally by stepper_step().
+ */
 void stepper_out(uint32_t state);
 
-// Stop Stepper Motor
+/**
+ * @brief  Toggle pause/resume of the running stepper_step().
+ * @note   Despite the name, it does not stop the motor permanently.
+ *         Each call toggles the pause state. Typically called from an EXTI handler (button).
+ */
 void stepper_stop(void);
+
+
+/** @} */
 
 
 #ifdef __cplusplus

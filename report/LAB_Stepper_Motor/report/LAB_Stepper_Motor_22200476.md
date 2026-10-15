@@ -372,7 +372,7 @@ void EXTI15_10_IRQHandler(void) {
 
 #### Code
 
-Source code: [github link](https://github.com/chaeeunyu/EC-STM32F4-22200476.git)
+Source code: [github link](https://github.com/chaeeunyu/EC-STM32F4-22200476/blob/main/lab/LAB_Stepper_Motor_22200476.c)
 
 The main source code `LAB_Stepper_Motor_22200476.c` is explained below.
 

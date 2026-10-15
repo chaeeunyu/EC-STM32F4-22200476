@@ -10,6 +10,18 @@ Language/ver     : C++ in VS Code
 Description      : ecSTM32F4v2.h
 /----------------------------------------------------------------*/
 
+/**
+ * @file    ecSTM32F4v2.h
+ * @brief   Top-level header of the EC library: includes all modules and provides MCU_init().
+ *
+ * Embedded Controller by Young-Keun Kim - Handong Global University
+ *
+ * @author  Yu Chaeeun
+ * @date    Created: 05-03-2021, Modified: Oct-01-2026
+ * @note    Language: C (VS Code, PlatformIO)
+ */
+
+
 #ifndef __EC_STM_H
 #define __EC_STM_H
 
@@ -26,9 +38,22 @@ Description      : ecSTM32F4v2.h
 #include "ecSysTick2.h"
 //#include "ecTIM2.h"
 //#include "ecPWM2.h"
-//#include "ecStepper2.h"
+#include "ecStepper2.h"
 //#include "ecADC2.h"
-//#include "ecUART2.h"
+#include "ecUART2.h"
+
+
+/**
+ * @defgroup MCU MCU Initialization
+ * @brief    One-call default setup of the MCU.
+ * @{
+ */
+
+ /**
+ * @brief  Default MCU setup: system clock PLL 84 MHz and SysTick 1 ms tick.
+ * @note   This function is defined (not only declared) in the header.
+ *         Include this header from only one .c file, or a multiple-definition link error occurs.
+ */
 
 
 void MCU_init(void){
@@ -52,6 +77,9 @@ void MCU_init(void){
     // ...
     // Others
 }
+
+/** @} */
+
 
 #endif
 
