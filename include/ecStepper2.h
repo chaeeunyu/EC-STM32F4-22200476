@@ -72,6 +72,11 @@ typedef struct {
  * @param[in] mode        FULL or HALF
  * @param[in] pinStepper  Array of 4 pins, in the order A, B, A', B'
  * @note   SysTick_init() must also be called before stepper_step(), since it uses delay_ms().
+ * @par Example
+ * @code
+ * PinName_t pinStepper[4] = {PB_10, PB_4, PB_5, PB_3};
+ * stepper_init(HALF, pinStepper);    // half-stepping mode
+ * @endcode
  */
 void stepper_init(uint32_t mode, PinName_t *pinStepper);
 
@@ -80,6 +85,10 @@ void stepper_init(uint32_t mode, PinName_t *pinStepper);
  * @param[in] speedRPM  Motor speed [rpm]
  * @note   The step period has 1 ms resolution and is computed with HALFSTEP_PER_REV,
  *         so speeds above about 14 rpm give a 0 ms period.
+ * @par Example
+ * @code
+ * stepper_speed(5);    // 5 rpm -> _step_delay = 60000/(4096*5) = 2 ms (half-stepping)
+ * @endcode
  */
 void stepper_speed (uint32_t speedRPM);
 
@@ -89,6 +98,11 @@ void stepper_speed (uint32_t speedRPM);
  * @param[in] direction  DIR_CW or DIR_CCW
  * @note   Returns immediately if stepper_init() was not called.
  *         While paused by stepper_stop(), the function waits.
+ * @par Example
+ * @code
+ * stepper_step(HALFSTEP_PER_REV*5, DIR_CW);    // 5 revolutions, CW (half-stepping)
+ * stepper_step(STEP_PER_REV*5, DIR_CCW);       // 5 revolutions, CCW (full-stepping)
+ * @endcode
  */
 void stepper_step(uint32_t steps, uint32_t direction);
 
@@ -96,6 +110,10 @@ void stepper_step(uint32_t steps, uint32_t direction);
  * @brief  Write the coil output pattern of an FSM state to the motor pins.
  * @param[in] state  FSM state number (S0~S3 for FULL, S0~S7 for HALF)
  * @note   Called internally by stepper_step().
+* @par Example
+ * @code
+ * stepper_out(S1);    // full-stepping: A=LOW, B=HIGH, A'=HIGH, B'=LOW
+ * @endcode
  */
 void stepper_out(uint32_t state);
 
@@ -103,6 +121,15 @@ void stepper_out(uint32_t state);
  * @brief  Toggle pause/resume of the running stepper_step().
  * @note   Despite the name, it does not stop the motor permanently.
  *         Each call toggles the pause state. Typically called from an EXTI handler (button).
+  * @par Example
+ * @code
+ * void EXTI15_10_IRQHandler(void) {  
+ *	if (is_pending_EXTI(BUTTON_PIN)) {
+ *		stepper_stop();                     // pause or resume
+ *		clear_pending_EXTI(BUTTON_PIN);
+ *	}
+ * }
+ * @endcode
  */
 void stepper_stop(void);
 

@@ -66,6 +66,11 @@ extern "C" {
  * @param[in] pinName  Pin to initialize (e.g., PA_5). See ecPinNames.h.
  * @param[in] mode     INPUT, OUTPUT, AF, or ANALOG
  * @note   Call this before any other GPIO_* function on the same pin.
+  * @par Example
+ * @code
+ * #define OUTPUT 0x01
+ * GPIO_init(A_13, OUTPUT);
+ * @endcode
  */
 void GPIO_init(PinName_t pinName, uint32_t mode);
 
@@ -81,6 +86,11 @@ void GPIO_mode(PinName_t pinName, uint32_t mode);
  * @param[in] pinName  Target pin
  * @param[in] speed    LOWSPEED, MEDSPEED, FASTSPEED, or HIGHSPEED
  * @note   Effective only in OUTPUT or AF mode.
+  * @par Example
+ * @code
+ * #define FASTSPEED 0x02
+ * GPIO_ospeed(A_13, FASTSPEED);
+ * @endcode
  */
 void GPIO_ospeed(PinName_t pinName, uint32_t speed);
 
@@ -89,6 +99,11 @@ void GPIO_ospeed(PinName_t pinName, uint32_t speed);
  * @param[in] pinName  Target pin
  * @param[in] type     PUSH_PULL or OPEN_DRAIN
  * @note   Effective only in OUTPUT or AF mode.
+  * @par Example
+ * @code
+ * #define PUSH_PULL 0x00
+ * GPIO_ospeed(A_13, PUSH_PULL);
+ * @endcode
  */
 void GPIO_otype(PinName_t pinName, uint32_t type);
 
@@ -104,6 +119,11 @@ void GPIO_pupd(PinName_t pinName, uint32_t pupd);
  * @param[in] pinName  Target pin
  * @param[in] Output   HIGH (1) or LOW (0)
  * @note   The pin must be initialized in OUTPUT mode.
+  * @par Example
+ * @code
+ * GPIO_init(PA_5, OUTPUT);
+ * GPIO_write(PA_5, HIGH);   // LED on
+ * @endcode
  */
 void GPIO_write(PinName_t pinName, uint32_t Output);
 
@@ -112,6 +132,10 @@ void GPIO_write(PinName_t pinName, uint32_t Output);
  * @param[in] pinName  Target pin
  * @return HIGH (1) or LOW (0)
  * @note   The pin must be initialized in INPUT mode.
+  * @par Example
+ * @code
+ * buttonState = GPIO_read(BUTTON_PIN);
+ * @endcode
  */
 uint32_t GPIO_read(PinName_t pinName);
 
@@ -135,6 +159,11 @@ void FND_select_init(PinName_t *selectFND);
  * @brief  Display a number on the currently selected digit.
  * @param[in] num  Number to display, 0~11 (index of numberFND)
  * @note   FND_init() must be called first.
+  * @par Example
+ * @code
+ * uint8_t numDisplay1  = 5;
+ * FND_display(numDisplay1);
+ * @endcode
  */
 void FND_display(uint8_t num);
 
@@ -142,6 +171,11 @@ void FND_display(uint8_t num);
  * @brief  Select which digit of the display is active.
  * @param[in] digit  Digit index
  * @note   FND_select_init() must be called first.
+  * @par Example
+ * @code
+ * uint8_t selectFND2  = 1;
+ * FND_select(selectFND2);
+ * @endcode
  */
 void FND_select(uint8_t digit);
 
