@@ -74,11 +74,12 @@ void USART_init(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
 	USARTx->CR1 &= ~USART_CR1_UE; 	// USART disable
 
 	// No Parity / 8-bit word length / Oversampling x16 / Stop bit =1
-  // [YOUR CODE HERE] 
-  // [YOUR CODE HERE] 
-  // [YOUR CODE HERE] 
+	USARTx->CR1 &= ~USART_CR1_PCE;
+	USARTx->CR1 &= ~USART_CR1_M;
+	USARTx->CR1 &= ~USART_CR1_OVER8;
+	USARTx->CR2 &= ~USART_CR2_STOP;
 
-	// Set Baudrate using APB frequency (42MHz)
+	// Set Baudrate using APB frequency
 	// If oversampling by 16, Tx/Rx baud = f_CK / (16*USARTDIV),
 	// If oversampling by 8,  Tx/Rx baud = f_CK / (8*USARTDIV)
 	USART_baud(USARTx, baud);
@@ -91,10 +92,13 @@ void USART_init(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
   // Enable RXNE interrupt
 	USARTx->CR1 |= USART_CR1_RXNEIE;
   // USART_IRQn
-	uint32_t USART_IRQ = USART2_IRQn;
-  // Set the priority and enable interrupt
-  // [YOUR CODE HERE] 
-  // [YOUR CODE HERE] 
+	uint32_t USART_IRQ = USART2_IRQn;	// USART2
+	if(USARTx == USART1){
+		USART_IRQ = USART1_IRQn;		// USART1
+	}
+	if(USARTx == USART6){
+		USART_IRQ = USART6_IRQn;		// USART6
+	}
  
 	NVIC_SetPriority(USART_IRQ, 1);
 	NVIC_EnableIRQ(USART_IRQ);
@@ -116,12 +120,11 @@ void USART_baud(USART_TypeDef* USARTx, uint32_t baud){
 	// Method 1 : build the two BRR fields explicitly
 	//   BRR[15:4] = DIV_Mantissa (integer part of USARTDIV)
 	//   BRR[3:0]  = DIV_Fraction (counts 1/16 steps -> multiply the fraction by 16)
-  //[YOUR CODE HERE]
-  //[YOUR CODE HERE]
-  //[YOUR CODE HERE]
-  // USARTx->BRR = _______________ 
+	uint32_t mantissa = (uint32_t)USARTDIV;
+	uint32_t fraction = round((USARTDIV - mantissa) * 16);
+	if (fraction > 15) { mantissa += 1; fraction = 0; }
+	USARTx->BRR = ((mantissa<<4) | fraction); 
 
-  
 	// Enable TX, RX, and USARTx
 	USARTx->CR1 |= USART_CR1_UE;
 }
@@ -138,10 +141,17 @@ void USART_pins(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
 	ecPinmap(pin_GPIO_RX, &GPIO_RX, &pinRX);
 
 	// Alternate Function, Push-Pull, No Pull-up/down, High speed
-	// [YOUR CODE HERE]
-  // [YOUR CODE HERE]
-  // [YOUR CODE HERE]
-  // [YOUR CODE HERE]
+	// TX settings
+	GPIO_init(pin_GPIO_TX, AF);
+	GPIO_otype(pin_GPIO_TX, PUSH_PULL);
+	GPIO_pupd(pin_GPIO_TX, NPUPD);
+	GPIO_ospeed(pin_GPIO_TX, HIGHSPEED);
+	
+	// RX settings
+	GPIO_init(pin_GPIO_RX, AF);
+	GPIO_otype(pin_GPIO_RX, PUSH_PULL);
+	GPIO_pupd(pin_GPIO_RX, NPUPD);
+	GPIO_ospeed(pin_GPIO_RX, HIGHSPEED);
 
 	// Set Alternate Function Register for USARTx
 	//   AF7 - USART1, USART2
@@ -150,14 +160,14 @@ void USART_pins(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
 	if (pinTX < 8) { GPIO_TX->AFR[0] &= ~(0xFUL << (4*pinTX));     GPIO_TX->AFR[0] |= AF_num << (4*pinTX); }
 	else           { GPIO_TX->AFR[1] &= ~(0xFUL << (4*(pinTX-8))); GPIO_TX->AFR[1] |= AF_num << (4*(pinTX-8)); }
 	
-  if (pinRX < 8) {
-    // [YOUR CODE HERE] 
-    // [YOUR CODE HERE] 
-  }
-  else{
-    // [YOUR CODE HERE] 
-    // [YOUR CODE HERE]   
-  }
+  	if (pinRX < 8) {
+    	GPIO_RX->AFR[0] &= ~(0xFUL << (4*pinRX));  // clear the 4-bit AF field
+		GPIO_RX->AFR[0] |= AF_num << (4*pinRX);  // set AF7 (USART1/2) or AF8 (USART6)
+  	}
+  	else{
+    	GPIO_RX->AFR[1] &= ~(0xFUL << (4*(pinRX-8)));  // clear (offset by 8 in AFRH)
+		GPIO_RX->AFR[1] |= AF_num << (4*(pinRX-8));  // set AF number
+  	}
 
 }
 
@@ -382,7 +392,7 @@ uint32_t is_USART2_RXNE(void){
 /*================ General Configuration ================*/
 void USART_clock_enable(USART_TypeDef* USARTx){
 	if (USARTx == USART1)
-		RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 	// Enable USART 1 clock (APB2 clock: AHB clock = 84MHz)
+		RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 	// Enabl lock: AHB clock = 84MHz)
 	else if(USARTx == USART2)
 		RCC->APB1ENR |= RCC_APB1ENR_USART2EN;  	// Enable USART 2 clock (APB1 clock: AHB clock/2 = 42MHz)
 	else

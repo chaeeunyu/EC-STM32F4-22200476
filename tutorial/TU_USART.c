@@ -1,11 +1,11 @@
 /*----------------------------------------------------------------\
 @ Embedded Controller by Young-Keun Kim - Handong Global University
-Author           : [ YOUR NAME GOES HERE !!!!!]
+Author           : Yu Chaeeun
 Created          : 10-08-2026
-Modified         : 00-00-2026 [WRITE THE DATE!!!!]
+Modified         : Oct-15-2026 
 Language/ver     : C in VS Code
 
-Description      : Tutorial - USART2 with the STUDENT library (ecUART2_student)
+Description      : Tutorial - USART2; printing "loop i", i++
 /----------------------------------------------------------------*/
 #include <stdio.h>
 #include <string.h>

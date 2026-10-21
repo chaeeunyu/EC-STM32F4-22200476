@@ -1,11 +1,11 @@
 /*----------------------------------------------------------------\
 @ Embedded Controller by Young-Keun Kim - Handong Global University
-Author           : [ YOUR NAME GOES HERE !!!!!]
+Author           : Yu Chaeeun
 Created          : 10-08-2026
-Modified         : 00-00-2026 [WRITE THE DATE!!!!]
+Modified         : Oct-15-2026 
 Language/ver     : C in VS Code
 
-Description      : Tutorial - USART2 with the STUDENT library (ecUART2_student)
+Description      : Tutorial - USART2; type & echoing on my computer screen
 /----------------------------------------------------------------*/
 #include <stdio.h>
 #include "stm32f4xx.h"
@@ -30,9 +30,7 @@ int main(void) {
 	setup();
 	printf("MCU Initialized\r\n");
 	// Inifinite Loop ----------------------------------------------------------
-	while(1){		
-		delay_ms(2000);        
-	}
+	while(1){}
 }
 
 

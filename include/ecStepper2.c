@@ -65,7 +65,7 @@ void stepper_init(uint32_t mode, PinName_t *pinStepper){
 // Converts Motor [rpm] to step delay in [msec]
 // speed -> by adjusting the step period(=_step_delay)
 void stepper_speed (uint32_t speedRPM){      // rpm
-		_step_delay = 60*1000/(HALFSTEP_PER_REV*speedRPM); 		//in [msec]	
+		_step_delay = 60*1000/(FULLSTEP_PER_REV*speedRPM); 		//in [msec] ---------> MODIFY!!(HALF/FULL)	
 		// [usec] can be used for a higher accuracy
 		// But needs delay_us() 
 }
@@ -105,15 +105,20 @@ void stepper_out(uint32_t state){
 }
 
 
-// Stop Stepper Motor
-void stepper_stop(void) {
-    // _steps = 0;    
+// pause Stepper Motor
+void stepper_pause(void) {
     
-	// // All pins DigitalOut '0'
-	// for(uint32_t i=0; i<4; i++){
-	// 	GPIO_write(stepperPins[i], LOW);
-	// }
 	pause_flag ^= 1;
+}
+
+// permanently stop motor
+void stepper_stop(void){
+	_steps = 0;    
+    
+	// All pins DigitalOut '0'
+	for(uint32_t i=0; i<4; i++){
+		GPIO_write(stepperPins[i], LOW);
+	}
 }
 
 

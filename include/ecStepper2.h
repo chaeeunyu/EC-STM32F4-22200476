@@ -83,8 +83,6 @@ void stepper_init(uint32_t mode, PinName_t *pinStepper);
 /**
  * @brief  Set the motor speed by converting [rpm] to the step period [ms].
  * @param[in] speedRPM  Motor speed [rpm]
- * @note   The step period has 1 ms resolution and is computed with HALFSTEP_PER_REV,
- *         so speeds above about 14 rpm give a 0 ms period.
  * @par Example
  * @code
  * stepper_speed(5);    // 5 rpm -> _step_delay = 60000/(4096*5) = 2 ms (half-stepping)
@@ -97,7 +95,7 @@ void stepper_speed (uint32_t speedRPM);
  * @param[in] steps      Number of steps
  * @param[in] direction  DIR_CW or DIR_CCW
  * @note   Returns immediately if stepper_init() was not called.
- *         While paused by stepper_stop(), the function waits.
+ *         While paused by stepper_pause(), the function waits.
  * @par Example
  * @code
  * stepper_step(HALFSTEP_PER_REV*5, DIR_CW);    // 5 revolutions, CW (half-stepping)
@@ -125,7 +123,22 @@ void stepper_out(uint32_t state);
  * @code
  * void EXTI15_10_IRQHandler(void) {  
  *	if (is_pending_EXTI(BUTTON_PIN)) {
- *		stepper_stop();                     // pause or resume
+ *		stepper_pause();                     // pause or resume
+ *		clear_pending_EXTI(BUTTON_PIN);
+ *	}
+ * }
+ * @endcode
+ */
+void stepper_pause(void);
+
+/**
+ * @brief  stop the running stepper_step().
+ * @note   It does stop the motor permanently.
+  * @par Example
+ * @code
+ * void EXTI15_10_IRQHandler(void) {  
+ *	if (is_pending_EXTI(BUTTON_PIN)) {
+ *		stepper_stop();           
  *		clear_pending_EXTI(BUTTON_PIN);
  *	}
  * }

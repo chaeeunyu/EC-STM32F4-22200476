@@ -9,6 +9,7 @@
 PinName_t pinStepper[4]    = {PB_10,PB_4,PB_5,PB_3};
 #define BUTTON_PIN  PC_13
 
+
 // Initialiization 
 void setup(void){	
 	RCC_PLL_init();                                 // System Clock = 84MHz
@@ -41,7 +42,7 @@ int main(void) {
 
 void EXTI15_10_IRQHandler(void) {  
 	if (is_pending_EXTI(BUTTON_PIN)) {
-		stepper_stop();
+		stepper_pause();
 		clear_pending_EXTI(BUTTON_PIN); // cleared by writing '1'
 	}
 }
