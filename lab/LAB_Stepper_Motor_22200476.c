@@ -19,7 +19,7 @@ void setup(void){
 	GPIO_pupd(BUTTON_PIN, PULL_UP);
     EXTI_init(BUTTON_PIN, FALL, 10);           		// External Interrupt Setting
 
-	stepper_init(HALF, pinStepper); 				// Stepper GPIO pin initialization
+	stepper_init(FULL, pinStepper); 				// Stepper GPIO pin initialization
 	stepper_speed(5);                          		//  set stepper motor speed, 5 rpm
 }
 
@@ -28,7 +28,7 @@ int main(void) {
 	// Initialiization --------------------------------------------------------
 	setup();
 	uint32_t rev=1;
-	uint32_t steps=HALFSTEP_PER_REV*rev;
+	uint32_t steps=FULLSTEP_PER_REV*rev;
 	
 	// Inifinite Loop ----------------------------------------------------------
 	while(1){
