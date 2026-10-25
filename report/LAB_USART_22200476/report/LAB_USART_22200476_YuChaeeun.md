@@ -10,7 +10,7 @@
 
 ​				 		[Problem 2 video](https://youtu.be/0kP_j8nmzCQ)
 
-**PDF version:** [LAB_USART_22200476.pdf](LAB_USART_22200476.pdf)
+**PDF version:** [LAB_USART_22200476_YuChaeeun.pdf](LAB_USART_22200476_YuChaeeun.pdf)
 
 ## Introduction
 
@@ -329,25 +329,33 @@ USART1_baud(BAUD_38400);    // change USART1 to 38400 bps
 #define 	MAX_BUF		15
 
 
+// ---------------------------- Pin Configuration ----------------------------
+// USART2: ST-Link Virtual COM Port (connected to PC via USB)
 PinName_t pin_GPIO_TX2 = PA_2;
 PinName_t pin_GPIO_RX2 = PA_3;
+// USART1: connected to the other MCU (or Bluetooth module)
 PinName_t pin_GPIO_TX1 = PA_9;
 PinName_t pin_GPIO_RX1 = PA_10;
 
-static volatile uint8_t PC_buffer[MAX_BUF]={0, };
-static volatile uint8_t BT_buffer[MAX_BUF]={0, };
-static volatile uint8_t PC_string[MAX_BUF + 1]={0, };
-static volatile uint8_t PC_Data = 0;
+// ---------------------------- Global Variables ----------------------------
+// [PC (USART2) side]
+static volatile uint8_t PC_buffer[MAX_BUF]={0, };  // Temporary buffer for chars being received
+static volatile uint8_t BT_buffer[MAX_BUF]={0, };  
+static volatile uint8_t PC_string[MAX_BUF + 1]={0, };  // Completed string (+1 for NULL terminator '\0')
+static volatile uint8_t PC_Data = 0;    // Most recently received byte
+static volatile int idx = 0;        // Current write index of PC_buffer
+static volatile int bReceive = 0;    // Flag: PC string complete -> print in main
+static volatile int err_pc = 0;     // Flag: string exceeded MAX_BUF -> print error in main
+static volatile int ovf_pc = 0;     // Overflow state of current string (kept until END_CHAR)
+
 static uint8_t newline = '\n';
+
+// [Other MCU (USART1) side] - same structure as PC side
 static volatile uint8_t BT_Data = 0;
 static volatile uint8_t BT_string[MAX_BUF + 1]={0, };
-static volatile int idx = 0;
 static volatile int BT_idx = 0;
-static volatile int bReceive = 0;
 static volatile int bBTReceive = 0;
-static volatile int err_pc = 0;
 static volatile int err_bt = 0;
-static volatile int ovf_pc = 0;
 static volatile int ovf_bt = 0;
 ```
 
@@ -365,8 +373,8 @@ static volatile int ovf_bt = 0;
 
 ```c
 void setup(void){
-	RCC_PLL_init();
-	SysTick_init();
+	RCC_PLL_init();     // Set system clock to PLL (84 MHz)
+	SysTick_init();     // Initialize SysTick timer (for delay)
 	
 	// USART2: USB serial init
 	USART_init(USART2, pin_GPIO_TX2, pin_GPIO_RX2, BAUD_9600);  
@@ -386,21 +394,28 @@ The system clock is set to PLL 84 MHz and SysTick to 1 ms. USART2 (PA2/PA3) and 
 ##### 3. `main()`
 
 ```c
+// ISR only sets flags; time-consuming printf is handled in the main loop
+//  keep ISRs short!
 int main(void){	
 	setup();
 	printf("MCU Initialized\r\n");	
 	while(1){
 		// USART Receive: Use Interrupt only
 		// USART Transmit: Polling
+		//USART2_write(PC_string, 7);    
+        
+        // Print when a string from PC is complete
 		if (bReceive == 1){
             printf("PC_string: %s\r\n", PC_string);
-            bReceive = 0;
+            bReceive = 0;       // clear flag
 		}
+        // Print when a string from the other MCU is complete
 		if (bBTReceive == 1){
             printf("BT_string: %s\r\n", BT_string);
-            bBTReceive = 0;
+            bBTReceive = 0;     // clear flag
 		}
 
+        // Handle string-too-long errors
         if(err_pc == 1){
             printf("ERROR : Too long string\r\n");
             err_pc = 0;
@@ -420,17 +435,22 @@ The main loop only checks the flags set by the ISRs. When a flag is set, the com
 ##### 4. `USART2_IRQHandler()` : data from my PC
 
 ```c
+// USART2 RX interrupt: called every time one char is typed on the PC keyboard
 void USART2_IRQHandler(){       // USART2 Interrupt - when sending string
-	if(is_USART2_RXNE()){
+	if(is_USART2_RXNE()){   // RXNE (RX Not Empty): data available in receive data register
 		PC_Data = USART2_read();		// RX from UART2 (my PC)
-		USART2_write(&PC_Data,1);		// TX to USART2	 (my PC)	 Echo of keyboard typing
+		
+        // 1) Echo: send the char back so it appears on the PC terminal
+        USART2_write(&PC_Data,1);		// TX to USART2	 (my PC)	 Echo of keyboard typing
         if(PC_Data == END_CHAR){
-            USART2_write(&newline, 1);      // not for the prev line to be overwritten
+            USART2_write(&newline, 1);      // '\r' alone returns to line start and overwrites -> add '\n'
         }
-		USART1_write(&PC_Data,1);	  // TX to Other MCU
 
-		// Creates a String from received serial character
-        if(PC_Data == END_CHAR){
+         // 2) Forward: pass the received char to the other MCU as-is
+        USART1_write(&PC_Data,1);	  // TX to Other MCU
+
+		// 3) Assemble received chars into a string
+        if(PC_Data == END_CHAR){        // [Case A] Enter pressed -> end of string
             if(ovf_pc){
                 err_pc = 1;
             }
@@ -446,11 +466,11 @@ void USART2_IRQHandler(){       // USART2 Interrupt - when sending string
             idx = 0;
             ovf_pc = 0;
         }
-        else if (idx < MAX_BUF) {
+        else if (idx < MAX_BUF) {       // [Case B] Normal char & space left -> store in buffer
             PC_buffer[idx] = PC_Data;
             idx++;            
         }
-        else{ ovf_pc = 1; }     // if(idx >= MAX_BUF)
+        else{ ovf_pc = 1; }             // [Case C] Buffer full -> mark overflow, drop further chars
 	}
 }
 ```
@@ -472,21 +492,24 @@ This handler is called by hardware when a character typed on my PC arrives (RXNE
 ##### 5. `USART1_IRQHandler()` : data from the other MCU
 
 ```c
+// USART1 RX interrupt: called every time one char is received from the other MCU
 void USART1_IRQHandler(){          	// USART1 Interrupt - when receiving string from the other
 	if(is_USART1_RXNE()){
 		BT_Data = USART1_read();		// RX from other MCU UART1
+        
+        // Ignore NULL and LF (not included in the string)
         if(BT_Data == '\0' || BT_Data == '\n') return;
 
-
+        // 1) LED control command (reacts immediately, per char)
         if(BT_Data == 'L'){
-            GPIO_write(LED2, LOW);
+            GPIO_write(LED2, LOW);      // 'L' -> LED OFF
         }
         else if(BT_Data == 'H'){
-            GPIO_write(LED2, HIGH);
+            GPIO_write(LED2, HIGH);     // 'H' -> LED ON
         }
 		
-		// Creates a String from received serial character
-        if(BT_Data == END_CHAR){
+		// 2) String assembly - same logic as USART2 handler
+        if(BT_Data == END_CHAR){        // [Case A] End of string
             if(ovf_bt){
                 err_bt = 1;
             }
@@ -502,11 +525,11 @@ void USART1_IRQHandler(){          	// USART1 Interrupt - when receiving string 
             BT_idx = 0;
             ovf_bt = 0;
         }
-        else if (BT_idx < MAX_BUF) {
+        else if (BT_idx < MAX_BUF) {        // [Case B] Store in buffer
             BT_buffer[BT_idx] = BT_Data;
             BT_idx++;            
         }
-        else{ ovf_bt = 1; }     // if(idx >= MAX_BUF)
+        else{ ovf_bt = 1; }      // [Case C] Overflow
 	}
 }
 ```
@@ -659,15 +682,21 @@ The HC-06 is a Bluetooth 2.0 SPP (Serial Port Profile) module that works as a sl
 #define 	END_CHAR	'\r'
 
 static uint8_t   newline = '\n';
+
+// ---------------------------- Pin Configuration ----------------------------
+// USART2: ST-Link Virtual COM Port (connected to PC via USB, used by printf)
 PinName_t pin_GPIO_TX2 = PA_2;
 PinName_t pin_GPIO_RX2 = PA_3;
+// USART1: connected to Bluetooth module (MCU TX -> BT RX, MCU RX -> BT TX)
 PinName_t pin_GPIO_TX1 = PA_9;
 PinName_t pin_GPIO_RX1 = PA_10;
+// Stepper motor driver input pins, in coil-phase order
 PinName_t pinStepper[4] = {PB_10, PB_4, PB_5, PB_3};  // ( A, B,  AN,  BN)
 
-static uint8_t BT_Data = 0;
-static volatile int cw_flag = 0;
-static volatile int ccw_flag = 0;
+// ---------------------------- Global Variables ----------------------------
+static uint8_t BT_Data = 0;             // Most recently received byte (used only inside ISR)
+static volatile int cw_flag = 0;        // Flag: CW rotation requested  (set in ISR, handled in main)
+static volatile int ccw_flag = 0;       // Flag: CCW rotation requested (set in ISR, handled in main)
 ```
 
 - Since every command is a single character, one variable (`BT_Data`) is enough. The string buffer of Problem 1 is not used.
@@ -679,21 +708,23 @@ static volatile int ccw_flag = 0;
 ##### 2. `setup()`
 
 ```c
+// ---------------------------- Initialization ----------------------------
 void setup(void){	
-    RCC_PLL_init();     // initialize clock
-	SysTick_init();
+    RCC_PLL_init();     // Set system clock to PLL (84 MHz)
+	SysTick_init();     // Initialize SysTick timer (used for step timing / delay)
 
-    // USART2: USB serial init
+    // USART2: USB serial init (for printf debugging to PC)
 	USART_init(USART2, pin_GPIO_TX2, pin_GPIO_RX2, BAUD_9600);  
 	
-	// USART1: MCU2 serial init 
+	// USART1: Bluetooth module serial init
+	// Baud rate must match the BT module setting
 	USART_init(USART1, pin_GPIO_TX1, pin_GPIO_RX1, BAUD_9600); 
 
     // initialize LED
     GPIO_init(LED2, OUTPUT);
-    // initialize stepper motor
+    // initialize stepper motor in full-step mode with the 4 phase pins
     stepper_init(FULL, pinStepper); 
-    stepper_speed(10);   // motor speed = 5rpm
+    stepper_speed(10);   // motor speed = 10rpm
 }
 ```
 
@@ -704,22 +735,24 @@ USART1 (HC-06) and USART2 (ST-Link) are initialized at 9600 bps. USART2 is kept 
 ##### 3. `main()`
 
 ```c
+// ---------------------------- Main ----------------------------
 int main(void){	
 	setup();
     //printf("MCU Initialized\r\n");
 
-    uint32_t rev = 2;
-	uint32_t steps = FULLSTEP_PER_REV*rev;	
+    uint32_t rev = 2;                         // Number of revolutions per command
+	uint32_t steps = FULLSTEP_PER_REV*rev;    // Total steps = (steps per revolution) x (revolutions)
 
+    // ISR only sets flags; the (long) motor motion is executed in the main loop
 	while(1){
 
         if(cw_flag == 1){
-            stepper_step(steps, DIR_CW);
-            cw_flag = 0;
+            stepper_step(steps, DIR_CW);        // Rotate CW (blocking until done or stopped)
+            cw_flag = 0;                        // clear flag after motion
         }
         else if(ccw_flag == 1){
-            stepper_step(steps, DIR_CCW);
-            ccw_flag = 0;
+            stepper_step(steps, DIR_CCW);       // Rotate CCW (blocking until done or stopped)
+            ccw_flag = 0;                       // clear flag after motion
         }
 	}
 }
@@ -741,25 +774,25 @@ void USART1_IRQHandler(){          	// USART1 Interrupt - when receiving string 
             USART1_write(&newline, 1);      // not for the prev line to be overwritten
         }
 
-        // LED condition
+        // LED command: applied immediately inside ISR (fast operation)
         if(BT_Data == 'L'){
-            GPIO_write(LED2, LOW);
+            GPIO_write(LED2, LOW);          // 'L' -> LED OFF
         }
         else if(BT_Data == 'H'){
-            GPIO_write(LED2, HIGH);
+            GPIO_write(LED2, HIGH);         // 'H' -> LED ON
         }
 
-        // motor condition
+        // Motor command: only set flags here, actual motion is done in main
         if(BT_Data == 'J'){
-            cw_flag = 1;
+            cw_flag = 1;                    // 'J' -> request CW rotation
         }
         else if(BT_Data == 'K'){
-            ccw_flag = 1;
+            ccw_flag = 1;                   // 'K' -> request CCW rotation
         }
         else if(BT_Data == 'P'){
-            stepper_stop();
-            cw_flag = 0;
-            ccw_flag = 0;
+            stepper_stop();                 // 'P' -> stop motor immediately
+            cw_flag = 0;                    // cancel any pending requests
+            ccw_flag = 0; 
         }
 	}
 }

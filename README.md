@@ -20,7 +20,7 @@ EC/
 ?쒋?? api-*.md      ??moxygen creates it
 ?쒋?? README.md     ??doxygen + moxygen cooperation
 ?붴?? Doxyfile
-{#pinnames}
+<a id="pinnames"></a>
 
 # Pin Names
 
@@ -35,7 +35,7 @@ Pin name types used by all EC library functions, and conversion from a pin name 
 
 ---
 
-{#portname_t}
+<a id="portname_t"></a>
 
 ### PortName_t
 
@@ -47,23 +47,12 @@ Defined in include/ecPinNames.h:40
 
 GPIO port index. Used as the upper nibble of [PinName_t](#pinname_t).
 
-| Value | Description |
-|-------|-------------|
-| `PortA` |  |
-| `PortB` |  |
-| `PortC` |  |
-| `PortD` |  |
-| `PortE` |  |
-| `PortF` |  |
-| `PortG` |  |
-| `PortH` |  |
-| `PortI` |  |
-| `PortJ` |  |
-| `PortK` |  |
+`PortA` · `PortB` · `PortC` · `PortD` · `PortE` · `PortF` · `PortG` · `PortH` · `PortI` · `PortJ` · `PortK`
+
 
 ---
 
-{#pinname_t}
+<a id="pinname_t"></a>
 
 ### PinName_t
 
@@ -75,81 +64,8 @@ Defined in include/ecPinNames.h:61
 
 Pin name. Encoded as 0xXY: X = port index ([PortName_t](#portname_t)), Y = pin number (0~15). For example, PC_13 = 0x2D (port C = 2, pin 13 = 0xD). Arduino connector names (A0~A5, D0~D15) are aliases of the matching pins. NC means "not connected".
 
-| Value | Description |
-|-------|-------------|
-| `PA_0` |  |
-| `PA_1` |  |
-| `PA_2` |  |
-| `PA_3` |  |
-| `PA_4` |  |
-| `PA_5` |  |
-| `PA_6` |  |
-| `PA_7` |  |
-| `PA_8` |  |
-| `PA_9` |  |
-| `PA_10` |  |
-| `PA_11` |  |
-| `PA_12` |  |
-| `PA_13` |  |
-| `PA_14` |  |
-| `PA_15` |  |
-| `PB_0` |  |
-| `PB_1` |  |
-| `PB_2` |  |
-| `PB_3` |  |
-| `PB_4` |  |
-| `PB_5` |  |
-| `PB_6` |  |
-| `PB_7` |  |
-| `PB_8` |  |
-| `PB_9` |  |
-| `PB_10` |  |
-| `PB_12` |  |
-| `PB_13` |  |
-| `PB_14` |  |
-| `PB_15` |  |
-| `PC_0` |  |
-| `PC_1` |  |
-| `PC_2` |  |
-| `PC_3` |  |
-| `PC_4` |  |
-| `PC_5` |  |
-| `PC_6` |  |
-| `PC_7` |  |
-| `PC_8` |  |
-| `PC_9` |  |
-| `PC_10` |  |
-| `PC_11` |  |
-| `PC_12` |  |
-| `PC_13` |  |
-| `PC_14` |  |
-| `PC_15` |  |
-| `PD_2` |  |
-| `PH_0` |  |
-| `PH_1` |  |
-| `A0` |  |
-| `A1` |  |
-| `A2` |  |
-| `A3` |  |
-| `A4` |  |
-| `A5` |  |
-| `D0` |  |
-| `D1` |  |
-| `D2` |  |
-| `D3` |  |
-| `D4` |  |
-| `D5` |  |
-| `D6` |  |
-| `D7` |  |
-| `D8` |  |
-| `D9` |  |
-| `D10` |  |
-| `D11` |  |
-| `D12` |  |
-| `D13` |  |
-| `D14` |  |
-| `D15` |  |
-| `NC` |  |
+`PA_0` · `PA_1` · `PA_2` · `PA_3` · `PA_4` · `PA_5` · `PA_6` · `PA_7` · `PA_8` · `PA_9` · `PA_10` · `PA_11` · `PA_12` · `PA_13` · `PA_14` · `PA_15` · `PB_0` · `PB_1` · `PB_2` · `PB_3` · `PB_4` · `PB_5` · `PB_6` · `PB_7` · `PB_8` · `PB_9` · `PB_10` · `PB_12` · `PB_13` · `PB_14` · `PB_15` · `PC_0` · `PC_1` · `PC_2` · `PC_3` · `PC_4` · `PC_5` · `PC_6` · `PC_7` · `PC_8` · `PC_9` · `PC_10` · `PC_11` · `PC_12` · `PC_13` · `PC_14` · `PC_15` · `PD_2` · `PH_0` · `PH_1` · `A0` · `A1` · `A2` · `A3` · `A4` · `A5` · `D0` · `D1` · `D2` · `D3` · `D4` · `D5` · `D6` · `D7` · `D8` · `D9` · `D10` · `D11` · `D12` · `D13` · `D14` · `D15` · `NC`
+
 ## Functions
 
 | Return | Name | Description |
@@ -158,7 +74,7 @@ Pin name. Encoded as 0xXY: X = port index ([PortName_t](#portname_t)), Y = pin n
 
 ---
 
-{#ecpinmap}
+<a id="ecpinmap"></a>
 
 ### ecPinmap
 
@@ -193,10 +109,9 @@ Defined in include/ecPinNames.h:155
 
 Convert a pin name to its GPIO port and pin number.
 
-:::note
-Only ports A, B, C, D, H are mapped. Any other port falls back to GPIOA. 
+> [!NOTE]
+> Only ports A, B, C, D, H are mapped. Any other port falls back to GPIOA.
 
-:::
 
 #### Parameters
 
@@ -206,7 +121,7 @@ Only ports A, B, C, D, H are mapped. Any other port falls back to GPIOA.
 | `GPIOx` | `GPIO_TypeDef **` | GPIO port pointer (e.g., GPIOA) |
 | `pin` | `unsigned int *` | Pin number, 0~15 |
 
-{#rccclockdriver}
+<a id="rccclockdriver"></a>
 
 # RCC (Clock) Driver
 
@@ -227,7 +142,7 @@ Select the system clock (HSI 16 MHz or PLL 84 MHz) and enable GPIO port clocks.
 
 ---
 
-{#delay_ms_hsi}
+<a id="delay_ms_hsi"></a>
 
 ### delay_ms_HSI
 
@@ -243,10 +158,9 @@ Defined in include/ecRCC2.h:49
 
 Approximate blocking delay using a busy-wait loop.
 
-:::note
-The loop count is estimated from EC_SYSCLK, so the timing is not exact. Use [delay_ms()](api-SysTick.md#delay_ms) (SysTick) when accurate timing is needed. 
+> [!NOTE]
+> The loop count is estimated from EC_SYSCLK, so the timing is not exact. Use [delay_ms()](api-SysTick.md#delay_ms) (SysTick) when accurate timing is needed.
 
-:::
 
 #### Parameters
 
@@ -256,7 +170,7 @@ The loop count is estimated from EC_SYSCLK, so the timing is not exact. Use [del
 
 ---
 
-{#rcc_hsi_init}
+<a id="rcc_hsi_init"></a>
 
 ### RCC_HSI_init
 
@@ -285,14 +199,13 @@ Defined in include/ecRCC2.h:55
 
 Use the internal HSI oscillator (16 MHz) as the system clock.
 
-:::note
-Sets EC_SYSCLK to 16000000. 
+> [!NOTE]
+> Sets EC_SYSCLK to 16000000.
 
-:::
 
 ---
 
-{#rcc_pll_init}
+<a id="rcc_pll_init"></a>
 
 ### RCC_PLL_init
 
@@ -350,14 +263,13 @@ Defined in include/ecRCC2.h:65
 Use the PLL (from HSI) as the system clock at 84 MHz.
 
 PLL: 16 MHz x 84 / 8 / 2 = 84 MHz. Flash latency = 2 wait states. Bus clocks: AHB = 84 MHz, APB1 = 42 MHz, APB2 = 84 MHz. 
-:::note
-Sets EC_SYSCLK to 84000000. Call before [SysTick_init()](api-SysTick.md#systick_init) and USART setup, since they compute their timing from EC_SYSCLK. 
+> [!NOTE]
+> Sets EC_SYSCLK to 84000000. Call before [SysTick_init()](api-SysTick.md#systick_init) and USART setup, since they compute their timing from EC_SYSCLK.
 
-:::
 
 ---
 
-{#rcc_gpioa_enable}
+<a id="rcc_gpioa_enable"></a>
 
 ### RCC_GPIOA_enable
 
@@ -375,7 +287,7 @@ Enable the AHB1 clock of GPIO port A.
 
 ---
 
-{#rcc_gpiob_enable}
+<a id="rcc_gpiob_enable"></a>
 
 ### RCC_GPIOB_enable
 
@@ -393,7 +305,7 @@ Enable the AHB1 clock of GPIO port B.
 
 ---
 
-{#rcc_gpioc_enable}
+<a id="rcc_gpioc_enable"></a>
 
 ### RCC_GPIOC_enable
 
@@ -411,7 +323,7 @@ Enable the AHB1 clock of GPIO port C.
 
 ---
 
-{#rcc_gpiod_enable}
+<a id="rcc_gpiod_enable"></a>
 
 ### RCC_GPIOD_enable
 
@@ -429,7 +341,7 @@ Enable the AHB1 clock of GPIO port D.
 
 ---
 
-{#rcc_gpioe_enable}
+<a id="rcc_gpioe_enable"></a>
 
 ### RCC_GPIOE_enable
 
@@ -453,7 +365,7 @@ Enable the AHB1 clock of GPIO port E.
 
 ---
 
-{#ec_sysclk}
+<a id="ec_sysclk"></a>
 
 ### EC_SYSCLK
 
@@ -465,7 +377,7 @@ Defined in include/ecRCC2.h:41
 
 Current system clock frequency [Hz]. Updated by [RCC_HSI_init()](#rcc_hsi_init) and [RCC_PLL_init()](#rcc_pll_init).
 
-{#gpiodriver}
+<a id="gpiodriver"></a>
 
 # GPIO Driver
 
@@ -492,7 +404,7 @@ Initialize GPIO pins and configure mode, speed, output type, pull-up/down, and r
 
 ---
 
-{#gpio_init}
+<a id="gpio_init"></a>
 
 ### GPIO_init
 
@@ -526,10 +438,9 @@ Defined in include/ecGPIO2.h:75
 
 Initialize a GPIO pin: enable the port clock and set the pin mode.
 
-:::note
-Call this before any other GPIO_* function on the same pin. 
+> [!NOTE]
+> Call this before any other GPIO_* function on the same pin.
 
-:::
 
 #### Example
 
@@ -547,7 +458,7 @@ GPIO_init(A_13, OUTPUT);
 
 ---
 
-{#gpio_mode}
+<a id="gpio_mode"></a>
 
 ### GPIO_mode
 
@@ -575,7 +486,7 @@ Set the mode of a GPIO pin (MODER register).
 
 ---
 
-{#gpio_ospeed}
+<a id="gpio_ospeed"></a>
 
 ### GPIO_ospeed
 
@@ -594,10 +505,9 @@ Defined in include/ecGPIO2.h:95
 
 Set the output speed of a GPIO pin (OSPEEDR register).
 
-:::note
-Effective only in OUTPUT or AF mode. 
+> [!NOTE]
+> Effective only in OUTPUT or AF mode.
 
-:::
 
 #### Example
 
@@ -615,7 +525,7 @@ GPIO_ospeed(A_13, FASTSPEED);
 
 ---
 
-{#gpio_otype}
+<a id="gpio_otype"></a>
 
 ### GPIO_otype
 
@@ -634,10 +544,9 @@ Defined in include/ecGPIO2.h:108
 
 Set the output type of a GPIO pin (OTYPER register).
 
-:::note
-Effective only in OUTPUT or AF mode. 
+> [!NOTE]
+> Effective only in OUTPUT or AF mode.
 
-:::
 
 #### Example
 
@@ -655,7 +564,7 @@ GPIO_ospeed(A_13, PUSH_PULL);
 
 ---
 
-{#gpio_pupd}
+<a id="gpio_pupd"></a>
 
 ### GPIO_pupd
 
@@ -683,7 +592,7 @@ Set the internal pull-up/pull-down resistor of a GPIO pin (PUPDR register).
 
 ---
 
-{#gpio_write}
+<a id="gpio_write"></a>
 
 ### GPIO_write
 
@@ -701,10 +610,9 @@ Defined in include/ecGPIO2.h:128
 
 Write a logic level to a GPIO output pin.
 
-:::note
-The pin must be initialized in OUTPUT mode. 
+> [!NOTE]
+> The pin must be initialized in OUTPUT mode.
 
-:::
 
 #### Example
 
@@ -722,7 +630,7 @@ GPIO_write(PA_5, HIGH);   // LED on
 
 ---
 
-{#gpio_read}
+<a id="gpio_read"></a>
 
 ### GPIO_read
 
@@ -746,10 +654,9 @@ Read the logic level of a GPIO input pin.
 #### Returns
 HIGH (1) or LOW (0) 
 
-:::note
-The pin must be initialized in INPUT mode. 
+> [!NOTE]
+> The pin must be initialized in INPUT mode.
 
-:::
 
 #### Example
 
@@ -765,7 +672,7 @@ buttonState = GPIO_read(BUTTON_PIN);
 
 ---
 
-{#fnd_init}
+<a id="fnd_init"></a>
 
 ### FND_init
 
@@ -790,7 +697,7 @@ Initialize the 8 segment pins (a~g, dp) as outputs.
 
 ---
 
-{#fnd_select_init}
+<a id="fnd_select_init"></a>
 
 ### FND_select_init
 
@@ -815,7 +722,7 @@ Initialize the digit-select pins as outputs.
 
 ---
 
-{#fnd_display}
+<a id="fnd_display"></a>
 
 ### FND_display
 
@@ -834,10 +741,9 @@ Defined in include/ecGPIO2.h:168
 
 Display a number on the currently selected digit.
 
-:::note
-[FND_init()](#fnd_init) must be called first. 
+> [!NOTE]
+> [FND_init()](#fnd_init) must be called first.
 
-:::
 
 #### Example
 
@@ -854,7 +760,7 @@ FND_display(numDisplay1);
 
 ---
 
-{#fnd_select}
+<a id="fnd_select"></a>
 
 ### FND_select
 
@@ -870,10 +776,9 @@ Defined in include/ecGPIO2.h:180
 
 Select which digit of the display is active.
 
-:::note
-[FND_select_init()](#fnd_select_init) must be called first. 
+> [!NOTE]
+> [FND_select_init()](#fnd_select_init) must be called first.
 
-:::
 
 #### Example
 
@@ -890,7 +795,7 @@ FND_select(selectFND2);
 
 ---
 
-{#fnd_select_pupd}
+<a id="fnd_select_pupd"></a>
 
 ### FND_select_pupd
 
@@ -915,7 +820,7 @@ Set pull-up/pull-down for all digit-select pins.
 
 ---
 
-{#fnd_select_otype}
+<a id="fnd_select_otype"></a>
 
 ### FND_select_otype
 
@@ -940,7 +845,7 @@ Set output type for all digit-select pins.
 
 ---
 
-{#fnd_select_ospeed}
+<a id="fnd_select_ospeed"></a>
 
 ### FND_select_ospeed
 
@@ -971,7 +876,7 @@ Set output speed for all digit-select pins.
 
 ---
 
-{#numberfnd}
+<a id="numberfnd"></a>
 
 ### numberFND
 
@@ -983,7 +888,7 @@ Defined in include/ecGPIO2.h:144
 
 Segment patterns for each displayable number. [number][segment a~g, dp]
 
-{#systicktimer}
+<a id="systicktimer"></a>
 
 # SysTick Timer
 
@@ -1002,7 +907,7 @@ Generate a 1 ms tick with the SysTick timer and provide millisecond delays.
 
 ---
 
-{#systick_init}
+<a id="systick_init"></a>
 
 ### SysTick_init
 
@@ -1040,14 +945,13 @@ Defined in include/ecSysTick2.h:51
 
 Configure SysTick to interrupt every 1 ms and enable it (NVIC priority 15).
 
-:::note
-Call after [RCC_HSI_init()](api-RCC.md#rcc_hsi_init) or [RCC_PLL_init()](api-RCC.md#rcc_pll_init), because the reload value is computed from EC_SYSCLK. 
+> [!NOTE]
+> Call after [RCC_HSI_init()](api-RCC.md#rcc_hsi_init) or [RCC_PLL_init()](api-RCC.md#rcc_pll_init), because the reload value is computed from EC_SYSCLK.
 
-:::
 
 ---
 
-{#systick_handler}
+<a id="systick_handler"></a>
 
 ### SysTick_Handler
 
@@ -1061,14 +965,13 @@ Defined in include/ecSysTick2.h:57
 
 SysTick interrupt handler. Called by hardware every 1 ms; increments msTicks.
 
-:::note
-Do not call this function directly. 
+> [!NOTE]
+> Do not call this function directly.
 
-:::
 
 ---
 
-{#systick_counter}
+<a id="systick_counter"></a>
 
 ### SysTick_counter
 
@@ -1082,14 +985,13 @@ Defined in include/ecSysTick2.h:63
 
 Increment msTicks by 1.
 
-:::note
-Called from [SysTick_Handler()](#systick_handler). Not intended for direct use. 
+> [!NOTE]
+> Called from [SysTick_Handler()](#systick_handler). Not intended for direct use.
 
-:::
 
 ---
 
-{#delay_ms}
+<a id="delay_ms"></a>
 
 ### delay_ms
 
@@ -1105,15 +1007,13 @@ Defined in include/ecSysTick2.h:72
 
 Blocking delay in milliseconds, based on msTicks.
 
-:::note
-[SysTick_init()](#systick_init) must be called first. 
+> [!NOTE]
+> [SysTick_init()](#systick_init) must be called first.
 
-:::
 
-:::warning
-Do not call inside an ISR whose priority is equal to or higher than SysTick (priority 15). msTicks will not increase and the program will hang. 
+> [!WARNING]
+> Do not call inside an ISR whose priority is equal to or higher than SysTick (priority 15). msTicks will not increase and the program will hang.
 
-:::
 
 #### Parameters
 
@@ -1123,7 +1023,7 @@ Do not call inside an ISR whose priority is equal to or higher than SysTick (pri
 
 ---
 
-{#systick_reset}
+<a id="systick_reset"></a>
 
 ### SysTick_reset
 
@@ -1138,14 +1038,13 @@ Defined in include/ecSysTick2.h:78
 
 Reset the SysTick current value register (VAL) to 0.
 
-:::note
-This does not reset msTicks. 
+> [!NOTE]
+> This does not reset msTicks.
 
-:::
 
 ---
 
-{#systick_val}
+<a id="systick_val"></a>
 
 ### SysTick_val
 
@@ -1170,7 +1069,7 @@ Current counter value. It counts down from the reload value to 0 every 1 ms.
 
 ---
 
-{#msticks}
+<a id="msticks"></a>
 
 ### msTicks
 
@@ -1182,7 +1081,7 @@ Defined in include/ecSysTick2.h:43
 
 Millisecond counter. Incremented by 1 every 1 ms in [SysTick_Handler()](#systick_handler).
 
-{#extidriver}
+<a id="extidriver"></a>
 
 # EXTI Driver
 
@@ -1190,15 +1089,12 @@ Configure external interrupts on GPIO pins: trigger edge, NVIC priority, enable/
 
 ## Macros
 
-| Name | Description |
-|------|-------------|
-| [`FALL`](#fall)  |  |
-| [`RISE`](#rise)  |  |
-| [`BOTH`](#both)  |  |
+[`FALL`](#fall) · [`RISE`](#rise) · [`BOTH`](#both)
+
 
 ---
 
-{#fall}
+<a id="fall"></a>
 
 ### FALL
 
@@ -1210,7 +1106,7 @@ Defined in include/ecEXTI2.h:39
 
 ---
 
-{#rise}
+<a id="rise"></a>
 
 ### RISE
 
@@ -1222,7 +1118,7 @@ Defined in include/ecEXTI2.h:40
 
 ---
 
-{#both}
+<a id="both"></a>
 
 ### BOTH
 
@@ -1244,7 +1140,7 @@ Defined in include/ecEXTI2.h:41
 
 ---
 
-{#exti_init}
+<a id="exti_init"></a>
 
 ### EXTI_init
 
@@ -1303,20 +1199,17 @@ Defined in include/ecEXTI2.h:54
 
 Connect a GPIO pin to its EXTI line, set the trigger edge, and enable the interrupt in NVIC.
 
-:::note
-Initialize the pin as INPUT with [GPIO_init()](api-GPIO.md#gpio_init) first. The SYSCFG clock is enabled inside. 
+> [!NOTE]
+> Initialize the pin as INPUT with [GPIO_init()](api-GPIO.md#gpio_init) first. The SYSCFG clock is enabled inside.
 
-:::
 
-:::note
-Each EXTI line is shared by all ports with the same pin number (e.g., PA_13 and PC_13 cannot both be used). 
+> [!NOTE]
+> Each EXTI line is shared by all ports with the same pin number (e.g., PA_13 and PC_13 cannot both be used).
 
-:::
 
-:::note
-Lines 5~9 share EXTI9_5_IRQHandler(), lines 10~15 share EXTI15_10_IRQHandler(). 
+> [!NOTE]
+> Lines 5~9 share EXTI9_5_IRQHandler(), lines 10~15 share EXTI15_10_IRQHandler().
 
-:::
 
 #### Parameters
 
@@ -1328,7 +1221,7 @@ Lines 5~9 share EXTI9_5_IRQHandler(), lines 10~15 share EXTI15_10_IRQHandler().
 
 ---
 
-{#exti_enable}
+<a id="exti_enable"></a>
 
 ### EXTI_enable
 
@@ -1346,10 +1239,9 @@ Defined in include/ecEXTI2.h:61
 
 Enable (unmask) the EXTI interrupt of a pin.
 
-:::note
-[EXTI_init()](#exti_init) must be called first. 
+> [!NOTE]
+> [EXTI_init()](#exti_init) must be called first.
 
-:::
 
 #### Parameters
 
@@ -1359,7 +1251,7 @@ Enable (unmask) the EXTI interrupt of a pin.
 
 ---
 
-{#exti_disable}
+<a id="exti_disable"></a>
 
 ### EXTI_disable
 
@@ -1385,7 +1277,7 @@ Disable (mask) the EXTI interrupt of a pin. The configuration is kept.
 
 ---
 
-{#is_pending_exti}
+<a id="is_pending_exti"></a>
 
 ### is_pending_EXTI
 
@@ -1407,10 +1299,9 @@ Check whether the EXTI line of a pin has a pending interrupt.
 #### Returns
 1 if pending, 0 otherwise 
 
-:::note
-Use inside the IRQ handler to find which line triggered. 
+> [!NOTE]
+> Use inside the IRQ handler to find which line triggered.
 
-:::
 
 #### Parameters
 
@@ -1420,7 +1311,7 @@ Use inside the IRQ handler to find which line triggered.
 
 ---
 
-{#clear_pending_exti}
+<a id="clear_pending_exti"></a>
 
 ### clear_pending_EXTI
 
@@ -1440,10 +1331,9 @@ Defined in include/ecEXTI2.h:82
 
 Clear the pending flag of the EXTI line of a pin.
 
-:::note
-Call at the end of the IRQ handler. If not cleared, the handler is re-entered repeatedly. 
+> [!NOTE]
+> Call at the end of the IRQ handler. If not cleared, the handler is re-entered repeatedly.
 
-:::
 
 #### Parameters
 
@@ -1451,7 +1341,7 @@ Call at the end of the IRQ handler. If not cleared, the handler is re-entered re
 |-----------|------|-------------|
 | `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Pin whose pending flag is cleared |
 
-{#steppermotor}
+<a id="steppermotor"></a>
 
 # Stepper Motor
 
@@ -1476,7 +1366,7 @@ Drive a 4-phase stepper motor in full-step or half-step mode, with speed [rpm], 
 
 ---
 
-{#half}
+<a id="half"></a>
 
 ### HALF
 
@@ -1490,7 +1380,7 @@ Half-step mode (8 states)
 
 ---
 
-{#full}
+<a id="full"></a>
 
 ### FULL
 
@@ -1504,7 +1394,7 @@ Full-step mode (4 states)
 
 ---
 
-{#dir_ccw}
+<a id="dir_ccw"></a>
 
 ### DIR_CCW
 
@@ -1518,7 +1408,7 @@ Counter-clockwise direction
 
 ---
 
-{#dir_cw}
+<a id="dir_cw"></a>
 
 ### DIR_CW
 
@@ -1532,7 +1422,7 @@ Clockwise direction
 
 ---
 
-{#fullstep_per_rev}
+<a id="fullstep_per_rev"></a>
 
 ### FULLSTEP_PER_REV
 
@@ -1546,7 +1436,7 @@ Full steps per output-shaft revolution (2048)
 
 ---
 
-{#halfstep_per_rev}
+<a id="halfstep_per_rev"></a>
 
 ### HALFSTEP_PER_REV
 
@@ -1566,7 +1456,7 @@ Half steps per output-shaft revolution (4096)
 
 ---
 
-{#statenum}
+<a id="statenum"></a>
 
 ### StateNum
 
@@ -1578,16 +1468,8 @@ Defined in include/ecStepper2.h:58
 
 FSM state numbers. Full-step uses S0~S3, half-step uses S0~S7.
 
-| Value | Description |
-|-------|-------------|
-| `S0` |  |
-| `S1` |  |
-| `S2` |  |
-| `S3` |  |
-| `S4` |  |
-| `S5` |  |
-| `S6` |  |
-| `S7` |  |
+`S0` · `S1` · `S2` · `S3` · `S4` · `S5` · `S6` · `S7`
+
 ## Functions
 
 | Return | Name | Description |
@@ -1596,11 +1478,12 @@ FSM state numbers. Full-step uses S0~S3, half-step uses S0~S7.
 | `void` | [`stepper_speed`](#stepper_speed)  | Set the motor speed by converting [rpm] to the step period [ms]. |
 | `void` | [`stepper_step`](#stepper_step)  | Rotate the motor for a given number of steps (blocking). |
 | `void` | [`stepper_out`](#stepper_out)  | Write the coil output pattern of an FSM state to the motor pins. |
-| `void` | [`stepper_stop`](#stepper_stop)  | Toggle pause/resume of the running [stepper_step()](#stepper_step). |
+| `void` | [`stepper_pause`](#stepper_pause)  | Toggle pause/resume of the running [stepper_step()](#stepper_step). |
+| `void` | [`stepper_stop`](#stepper_stop)  | stop the running [stepper_step()](#stepper_step). |
 
 ---
 
-{#stepper_init}
+<a id="stepper_init"></a>
 
 ### stepper_init
 
@@ -1626,10 +1509,9 @@ Defined in include/ecStepper2.h:81
 
 Select the stepping mode and initialize the 4 motor pins as outputs.
 
-:::note
-[SysTick_init()](api-SysTick.md#systick_init) must also be called before [stepper_step()](#stepper_step), since it uses [delay_ms()](api-SysTick.md#delay_ms). 
+> [!NOTE]
+> [SysTick_init()](api-SysTick.md#systick_init) must also be called before [stepper_step()](#stepper_step), since it uses [delay_ms()](api-SysTick.md#delay_ms).
 
-:::
 
 #### Example
 
@@ -1647,26 +1529,21 @@ stepper_init(HALF, pinStepper);    // half-stepping mode
 
 ---
 
-{#stepper_speed}
+<a id="stepper_speed"></a>
 
 ### stepper_speed
 
 ```c
 void stepper_speed (uint32_t speedRPM){      // rpm
-		_step_delay = 60*1000/(HALFSTEP_PER_REV*speedRPM); 		//in [msec]	
+		_step_delay = 60*1000/(FULLSTEP_PER_REV*speedRPM); 		//in [msec] ---------> MODIFY!!(HALF/FULL)	
 		// [usec] can be used for a higher accuracy
 		// But needs delay_us() 
 }
 ```
 
-Defined in include/ecStepper2.h:93
+Defined in include/ecStepper2.h:91
 
 Set the motor speed by converting [rpm] to the step period [ms].
-
-:::note
-The step period has 1 ms resolution and is computed with HALFSTEP_PER_REV, so speeds above about 14 rpm give a 0 ms period. 
-
-:::
 
 #### Example
 
@@ -1682,7 +1559,7 @@ stepper_speed(5);    // 5 rpm -> _step_delay = 60000/(4096*5) = 2 ms (half-stepp
 
 ---
 
-{#stepper_step}
+<a id="stepper_step"></a>
 
 ### stepper_step
 
@@ -1708,14 +1585,13 @@ void stepper_step(uint32_t steps, uint32_t direction){
 }
 ```
 
-Defined in include/ecStepper2.h:107
+Defined in include/ecStepper2.h:105
 
 Rotate the motor for a given number of steps (blocking).
 
-:::note
-Returns immediately if [stepper_init()](#stepper_init) was not called. While paused by [stepper_stop()](#stepper_stop), the function waits. 
+> [!NOTE]
+> Returns immediately if [stepper_init()](#stepper_init) was not called. While paused by [stepper_pause()](#stepper_pause), the function waits.
 
-:::
 
 #### Example
 
@@ -1733,7 +1609,7 @@ stepper_step(STEP_PER_REV*5, DIR_CCW);       // 5 revolutions, CCW (full-steppin
 
 ---
 
-{#stepper_out}
+<a id="stepper_out"></a>
 
 ### stepper_out
 
@@ -1750,14 +1626,13 @@ void stepper_out(uint32_t state){
 }
 ```
 
-Defined in include/ecStepper2.h:118
+Defined in include/ecStepper2.h:116
 
 Write the coil output pattern of an FSM state to the motor pins.
 
-:::note
-Called internally by [stepper_step()](#stepper_step). 
+> [!NOTE]
+> Called internally by [stepper_step()](#stepper_step).
 
-:::
 
 #### Example
 
@@ -1773,37 +1648,67 @@ stepper_out(S1);    // full-stepping: A=LOW, B=HIGH, A'=HIGH, B'=LOW
 
 ---
 
-{#stepper_stop}
+<a id="stepper_pause"></a>
 
-### stepper_stop
+### stepper_pause
 
 ```c
-void stepper_stop(void) {
-    // _steps = 0;    
+void stepper_pause(void) {
     
-	// // All pins DigitalOut '0'
-	// for(uint32_t i=0; i<4; i++){
-	// 	GPIO_write(stepperPins[i], LOW);
-	// }
 	pause_flag ^= 1;
 }
 ```
 
-Defined in include/ecStepper2.h:134
+Defined in include/ecStepper2.h:132
 
 Toggle pause/resume of the running [stepper_step()](#stepper_step).
 
-:::note
-Despite the name, it does not stop the motor permanently. Each call toggles the pause state. Typically called from an EXTI handler (button). 
+> [!NOTE]
+> Despite the name, it does not stop the motor permanently. Each call toggles the pause state. Typically called from an EXTI handler (button).
 
-:::
 
 #### Example
 
 ```cpp
 void EXTI15_10_IRQHandler(void) {  
  if (is_pending_EXTI(BUTTON_PIN)) {
-    stepper_stop();                     // pause or resume
+    stepper_pause();                     // pause or resume
+    clear_pending_EXTI(BUTTON_PIN);
+ }
+}
+```
+
+---
+
+<a id="stepper_stop"></a>
+
+### stepper_stop
+
+```c
+void stepper_stop(void){
+	_steps = 0;    
+    
+	// All pins DigitalOut '0'
+	for(uint32_t i=0; i<4; i++){
+		GPIO_write(stepperPins[i], LOW);
+	}
+}
+```
+
+Defined in include/ecStepper2.h:147
+
+stop the running [stepper_step()](#stepper_step).
+
+> [!NOTE]
+> It does stop the motor permanently.
+
+
+#### Example
+
+```cpp
+void EXTI15_10_IRQHandler(void) {  
+ if (is_pending_EXTI(BUTTON_PIN)) {
+    stepper_stop();           
     clear_pending_EXTI(BUTTON_PIN);
  }
 }
@@ -1812,7 +1717,7 @@ void EXTI15_10_IRQHandler(void) {
 
 ## Class Definitions
 
-{#statestepper_t}
+<a id="statestepper_t"></a>
 
 ### StateStepper_t
 
@@ -1837,7 +1742,7 @@ One FSM state: next state for each direction, and the coil output pattern.
 
 ---
 
-{#next}
+<a id="next"></a>
 
 ##### next
 
@@ -1851,7 +1756,7 @@ Next state. Index = direction (DIR_CCW or DIR_CW)
 
 ---
 
-{#out}
+<a id="out"></a>
 
 ##### out
 
@@ -1863,7 +1768,7 @@ Defined in include/ecStepper2.h:65
 
 Output levels for coils A, B, A', B'
 
-{#usartdriver}
+<a id="usartdriver"></a>
 
 # USART Driver
 
@@ -1884,7 +1789,7 @@ Configure USART1/2/6 (8-N-1, oversampling x16) and send/receive bytes. printf() 
 
 ---
 
-{#pol}
+<a id="pol"></a>
 
 ### POL
 
@@ -1898,7 +1803,7 @@ Polling mode
 
 ---
 
-{#int}
+<a id="int"></a>
 
 ### INT
 
@@ -1912,7 +1817,7 @@ Interrupt mode
 
 ---
 
-{#baud_9600}
+<a id="baud_9600"></a>
 
 ### BAUD_9600
 
@@ -1926,7 +1831,7 @@ Defined in include/ecUART2.h:50
 
 ---
 
-{#baud_19200}
+<a id="baud_19200"></a>
 
 ### BAUD_19200
 
@@ -1940,7 +1845,7 @@ Defined in include/ecUART2.h:51
 
 ---
 
-{#baud_38400}
+<a id="baud_38400"></a>
 
 ### BAUD_38400
 
@@ -1954,7 +1859,7 @@ Defined in include/ecUART2.h:52
 
 ---
 
-{#baud_57600}
+<a id="baud_57600"></a>
 
 ### BAUD_57600
 
@@ -1968,7 +1873,7 @@ Defined in include/ecUART2.h:53
 
 ---
 
-{#baud_115200}
+<a id="baud_115200"></a>
 
 ### BAUD_115200
 
@@ -1982,7 +1887,7 @@ Defined in include/ecUART2.h:54
 
 ---
 
-{#baud_921600}
+<a id="baud_921600"></a>
 
 ### BAUD_921600
 
@@ -2019,7 +1924,7 @@ Defined in include/ecUART2.h:55
 
 ---
 
-{#usart_init}
+<a id="usart_init"></a>
 
 ### USART_init
 
@@ -2035,11 +1940,12 @@ void USART_init(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
 	USARTx->CR1 &= ~USART_CR1_UE; 	// USART disable
 
 	// No Parity / 8-bit word length / Oversampling x16 / Stop bit =1
-  // [YOUR CODE HERE] 
-  // [YOUR CODE HERE] 
-  // [YOUR CODE HERE] 
+	USARTx->CR1 &= ~USART_CR1_PCE;
+	USARTx->CR1 &= ~USART_CR1_M;
+	USARTx->CR1 &= ~USART_CR1_OVER8;
+	USARTx->CR2 &= ~USART_CR2_STOP;
 
-	// Set Baudrate using APB frequency (42MHz)
+	// Set Baudrate using APB frequency
 	// If oversampling by 16, Tx/Rx baud = f_CK / (16*USARTDIV),
 	// If oversampling by 8,  Tx/Rx baud = f_CK / (8*USARTDIV)
 	USART_baud(USARTx, baud);
@@ -2052,10 +1958,13 @@ void USART_init(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
   // Enable RXNE interrupt
 	USARTx->CR1 |= USART_CR1_RXNEIE;
   // USART_IRQn
-	uint32_t USART_IRQ = USART2_IRQn;
-  // Set the priority and enable interrupt
-  // [YOUR CODE HERE] 
-  // [YOUR CODE HERE] 
+	uint32_t USART_IRQ = USART2_IRQn;	// USART2
+	if(USARTx == USART1){
+		USART_IRQ = USART1_IRQn;		// USART1
+	}
+	if(USARTx == USART6){
+		USART_IRQ = USART6_IRQn;		// USART6
+	}
  
 	NVIC_SetPriority(USART_IRQ, 1);
 	NVIC_EnableIRQ(USART_IRQ);
@@ -2068,10 +1977,9 @@ Defined in include/ecUART2.h:90
 Initialize a USART with given TX/RX pins and baud rate, and enable its RX interrupt.
 
 Frame format: 8 data bits, no parity, 1 stop bit, oversampling x16. 
-:::note
-Call after [RCC_PLL_init()](api-RCC.md#rcc_pll_init) or [RCC_HSI_init()](api-RCC.md#rcc_hsi_init), since the baud rate is computed from EC_SYSCLK. 
+> [!NOTE]
+> Call after [RCC_PLL_init()](api-RCC.md#rcc_pll_init) or [RCC_HSI_init()](api-RCC.md#rcc_hsi_init), since the baud rate is computed from EC_SYSCLK.
 
-:::
 
 #### Parameters
 
@@ -2084,7 +1992,7 @@ Call after [RCC_PLL_init()](api-RCC.md#rcc_pll_init) or [RCC_HSI_init()](api-RCC
 
 ---
 
-{#usart_baud}
+<a id="usart_baud"></a>
 
 ### USART_baud
 
@@ -2103,12 +2011,11 @@ void USART_baud(USART_TypeDef* USARTx, uint32_t baud){
 	// Method 1 : build the two BRR fields explicitly
 	//   BRR[15:4] = DIV_Mantissa (integer part of USARTDIV)
 	//   BRR[3:0]  = DIV_Fraction (counts 1/16 steps -> multiply the fraction by 16)
-  //[YOUR CODE HERE]
-  //[YOUR CODE HERE]
-  //[YOUR CODE HERE]
-  // USARTx->BRR = _______________ 
+	uint32_t mantissa = (uint32_t)USARTDIV;
+	uint32_t fraction = round((USARTDIV - mantissa) * 16);
+	if (fraction > 15) { mantissa += 1; fraction = 0; }
+	USARTx->BRR = ((mantissa<<4) | fraction); 
 
-  
 	// Enable TX, RX, and USARTx
 	USARTx->CR1 |= USART_CR1_UE;
 }
@@ -2118,10 +2025,9 @@ Defined in include/ecUART2.h:98
 
 Set the baud rate of a USART (BRR register).
 
-:::note
-Uses APB1 (EC_SYSCLK / 2) for USART2 and APB2 (EC_SYSCLK) for USART1/6. 
+> [!NOTE]
+> Uses APB1 (EC_SYSCLK / 2) for USART2 and APB2 (EC_SYSCLK) for USART1/6.
 
-:::
 
 #### Parameters
 
@@ -2132,7 +2038,7 @@ Uses APB1 (EC_SYSCLK / 2) for USART2 and APB2 (EC_SYSCLK) for USART1/6.
 
 ---
 
-{#usart_pins}
+<a id="usart_pins"></a>
 
 ### USART_pins
 
@@ -2147,10 +2053,17 @@ void USART_pins(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
 	ecPinmap(pin_GPIO_RX, &GPIO_RX, &pinRX);
 
 	// Alternate Function, Push-Pull, No Pull-up/down, High speed
-	// [YOUR CODE HERE]
-  // [YOUR CODE HERE]
-  // [YOUR CODE HERE]
-  // [YOUR CODE HERE]
+	// TX settings
+	GPIO_init(pin_GPIO_TX, AF);
+	GPIO_otype(pin_GPIO_TX, PUSH_PULL);
+	GPIO_pupd(pin_GPIO_TX, NPUPD);
+	GPIO_ospeed(pin_GPIO_TX, HIGHSPEED);
+	
+	// RX settings
+	GPIO_init(pin_GPIO_RX, AF);
+	GPIO_otype(pin_GPIO_RX, PUSH_PULL);
+	GPIO_pupd(pin_GPIO_RX, NPUPD);
+	GPIO_ospeed(pin_GPIO_RX, HIGHSPEED);
 
 	// Set Alternate Function Register for USARTx
 	//   AF7 - USART1, USART2
@@ -2159,14 +2072,14 @@ void USART_pins(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
 	if (pinTX < 8) { GPIO_TX->AFR[0] &= ~(0xFUL << (4*pinTX));     GPIO_TX->AFR[0] |= AF_num << (4*pinTX); }
 	else           { GPIO_TX->AFR[1] &= ~(0xFUL << (4*(pinTX-8))); GPIO_TX->AFR[1] |= AF_num << (4*(pinTX-8)); }
 	
-  if (pinRX < 8) {
-    // [YOUR CODE HERE] 
-    // [YOUR CODE HERE] 
-  }
-  else{
-    // [YOUR CODE HERE] 
-    // [YOUR CODE HERE]   
-  }
+  	if (pinRX < 8) {
+    	GPIO_RX->AFR[0] &= ~(0xFUL << (4*pinRX));  // clear the 4-bit AF field
+		GPIO_RX->AFR[0] |= AF_num << (4*pinRX);  // set AF7 (USART1/2) or AF8 (USART6)
+  	}
+  	else{
+    	GPIO_RX->AFR[1] &= ~(0xFUL << (4*(pinRX-8)));  // clear (offset by 8 in AFRH)
+		GPIO_RX->AFR[1] |= AF_num << (4*(pinRX-8));  // set AF number
+  	}
 
 }
 ```
@@ -2185,7 +2098,7 @@ Configure TX/RX pins for a USART: alternate function, push-pull, no pull-up/down
 
 ---
 
-{#usart1_baud}
+<a id="usart1_baud"></a>
 
 ### USART1_baud
 
@@ -2207,7 +2120,7 @@ Set the baud rate of USART1.
 
 ---
 
-{#usart2_baud}
+<a id="usart2_baud"></a>
 
 ### USART2_baud
 
@@ -2229,7 +2142,7 @@ Set the baud rate of USART2.
 
 ---
 
-{#usart1_init}
+<a id="usart1_init"></a>
 
 ### USART1_init
 
@@ -2331,7 +2244,7 @@ Initialize USART1 with default settings: PA_9 (TX), PA_10 (RX), 9600 bps, RX int
 
 ---
 
-{#usart2_init}
+<a id="usart2_init"></a>
 
 ### USART2_init
 
@@ -2431,14 +2344,13 @@ Defined in include/ecUART2.h:135
 
 Initialize USART2 with default settings: PA_2 (TX), PA_3 (RX), 9600 bps, RX interrupt enabled.
 
-:::note
-USART2 is connected to the PC through the Nucleo USB (virtual COM port). 
+> [!NOTE]
+> USART2 is connected to the PC through the Nucleo USB (virtual COM port).
 
-:::
 
 ---
 
-{#usart1_write}
+<a id="usart1_write"></a>
 
 ### USART1_write
 
@@ -2461,7 +2373,7 @@ Send bytes through USART1 (blocking).
 
 ---
 
-{#usart2_write}
+<a id="usart2_write"></a>
 
 ### USART2_write
 
@@ -2484,7 +2396,7 @@ Send bytes through USART2 (blocking).
 
 ---
 
-{#usart1_read}
+<a id="usart1_read"></a>
 
 ### USART1_read
 
@@ -2503,7 +2415,7 @@ Received byte
 
 ---
 
-{#usart2_read}
+<a id="usart2_read"></a>
 
 ### USART2_read
 
@@ -2522,7 +2434,7 @@ Received byte
 
 ---
 
-{#is_usart1_rxne}
+<a id="is_usart1_rxne"></a>
 
 ### is_USART1_RXNE
 
@@ -2541,7 +2453,7 @@ Check whether USART1 has received data (RXNE flag).
 
 ---
 
-{#is_usart2_rxne}
+<a id="is_usart2_rxne"></a>
 
 ### is_USART2_RXNE
 
@@ -2560,14 +2472,14 @@ Check whether USART2 has received data (RXNE flag).
 
 ---
 
-{#usart_clock_enable}
+<a id="usart_clock_enable"></a>
 
 ### USART_clock_enable
 
 ```c
 void USART_clock_enable(USART_TypeDef* USARTx){
 	if (USARTx == USART1)
-		RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 	// Enable USART 1 clock (APB2 clock: AHB clock = 84MHz)
+		RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 	// Enabl lock: AHB clock = 84MHz)
 	else if(USARTx == USART2)
 		RCC->APB1ENR |= RCC_APB1ENR_USART2EN;  	// Enable USART 2 clock (APB1 clock: AHB clock/2 = 42MHz)
 	else
@@ -2587,7 +2499,7 @@ Enable the peripheral clock of a USART.
 
 ---
 
-{#usart_write}
+<a id="usart_write"></a>
 
 ### USART_write
 
@@ -2624,7 +2536,7 @@ Send bytes through a USART (blocking). Waits for TXE before each byte and TC at 
 
 ---
 
-{#usart_read}
+<a id="usart_read"></a>
 
 ### USART_read
 
@@ -2652,7 +2564,7 @@ Received byte
 
 ---
 
-{#is_usart_rxne}
+<a id="is_usart_rxne"></a>
 
 ### is_USART_RXNE
 
@@ -2677,7 +2589,7 @@ Check whether a USART has received data (RXNE flag).
 
 ---
 
-{#usart_delay}
+<a id="usart_delay"></a>
 
 ### USART_delay
 
@@ -2698,7 +2610,7 @@ Approximate busy-wait delay used between transmitted bytes.
 |-----------|------|-------------|
 | `us` | `uint32_t` | Delay time [us] (approximate, not calibrated) |
 
-{#mcuinitialization}
+<a id="mcuinitialization"></a>
 
 # MCU Initialization
 
