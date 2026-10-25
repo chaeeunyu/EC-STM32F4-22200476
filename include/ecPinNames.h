@@ -151,6 +151,13 @@ typedef enum {
  * @param[out] GPIOx    GPIO port pointer (e.g., GPIOA)
  * @param[out] pin      Pin number, 0~15
  * @note   Only ports A, B, C, D, H are mapped. Any other port falls back to GPIOA.
+ * @par Example
+ * @code
+ * GPIO_TypeDef *port;
+ * unsigned int pin;
+ * ecPinmap(PA_5, &port, &pin);     // port = GPIOA, pin = 5
+ * port->ODR |= (1UL << pin);       // PA_5 = HIGH
+ * @endcode
  */
 void ecPinmap(PinName_t pinName, GPIO_TypeDef **GPIOx, unsigned int *pin);
 

@@ -53,6 +53,19 @@ Description      : ecSTM32F4v2.h
  * @brief  Default MCU setup: system clock PLL 84 MHz and SysTick 1 ms tick.
  * @note   This function is defined (not only declared) in the header.
  *         Include this header from only one .c file, or a multiple-definition link error occurs.
+ * @par Example
+ * @code
+ * int main(void) {
+ *     MCU_init();                  // PLL 84 MHz + SysTick 1 ms
+ *     GPIO_init(PA_5, OUTPUT);
+ *     while (1) {
+ *         GPIO_write(PA_5, HIGH);
+ *         delay_ms(500);
+ *         GPIO_write(PA_5, LOW);
+ *         delay_ms(500);
+ *     }
+ * }
+ * @endcode
  */
 
 

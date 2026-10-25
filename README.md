@@ -1,4 +1,4 @@
-﻿# Intro.md
+# Intro.md
 
 **[github repository: EC-STM32F4-22200476](https://github.com/chaeeunyu/EC-STM32F4-22200476)**
 
@@ -11,15 +11,16 @@ Firmware for STM32F4
 folder structure
 
 EC/
-?쒋?? intro.md   	
-?쒋?? lab
-?쒋?? tutorial
-?쒋?? docs
-??
-?쒋?? include
-?쒋?? api-*.md      ??moxygen creates it
-?쒋?? README.md     ??doxygen + moxygen cooperation
-?붴?? Doxyfile
+├── intro.md   	
+├── lab
+├── tutorial
+├── docs
+⋮
+├── include
+├── api-*.md      ← moxygen creates it
+├── README.md     ← doxygen + moxygen cooperation
+└── Doxyfile
+
 <a id="pinnames"></a>
 
 # Pin Names
@@ -31,7 +32,7 @@ Pin name types used by all EC library functions, and conversion from a pin name 
 | Name | Description |
 |------|-------------|
 | [`PortName_t`](#portname_t)  | GPIO port index. Used as the upper nibble of [PinName_t](#pinname_t). |
-| [`PinName_t`](#pinname_t)  | Pin name. Encoded as 0xXY: X = port index ([PortName_t](#portname_t)), Y = pin number (0~15). For example, PC_13 = 0x2D (port C = 2, pin 13 = 0xD). Arduino connector names (A0~A5, D0~D15) are aliases of the matching pins. NC means "not connected". |
+| [`PinName_t`](#pinname_t)  | Pin name. Encoded as 0xXY: X = port index ([PortName_t](#portname_t)), Y = pin number (0\~15). For example, PC_13 = 0x2D (port C = 2, pin 13 = 0xD). Arduino connector names (A0\~A5, D0\~D15) are aliases of the matching pins. NC means "not connected". |
 
 ---
 
@@ -62,7 +63,7 @@ enum PinName_t
 
 Defined in include/ecPinNames.h:61
 
-Pin name. Encoded as 0xXY: X = port index ([PortName_t](#portname_t)), Y = pin number (0~15). For example, PC_13 = 0x2D (port C = 2, pin 13 = 0xD). Arduino connector names (A0~A5, D0~D15) are aliases of the matching pins. NC means "not connected".
+Pin name. Encoded as 0xXY: X = port index ([PortName_t](#portname_t)), Y = pin number (0\~15). For example, PC_13 = 0x2D (port C = 2, pin 13 = 0xD). Arduino connector names (A0\~A5, D0\~D15) are aliases of the matching pins. NC means "not connected".
 
 `PA_0` · `PA_1` · `PA_2` · `PA_3` · `PA_4` · `PA_5` · `PA_6` · `PA_7` · `PA_8` · `PA_9` · `PA_10` · `PA_11` · `PA_12` · `PA_13` · `PA_14` · `PA_15` · `PB_0` · `PB_1` · `PB_2` · `PB_3` · `PB_4` · `PB_5` · `PB_6` · `PB_7` · `PB_8` · `PB_9` · `PB_10` · `PB_12` · `PB_13` · `PB_14` · `PB_15` · `PC_0` · `PC_1` · `PC_2` · `PC_3` · `PC_4` · `PC_5` · `PC_6` · `PC_7` · `PC_8` · `PC_9` · `PC_10` · `PC_11` · `PC_12` · `PC_13` · `PC_14` · `PC_15` · `PD_2` · `PH_0` · `PH_1` · `A0` · `A1` · `A2` · `A3` · `A4` · `A5` · `D0` · `D1` · `D2` · `D3` · `D4` · `D5` · `D6` · `D7` · `D8` · `D9` · `D10` · `D11` · `D12` · `D13` · `D14` · `D15` · `NC`
 
@@ -105,7 +106,7 @@ void ecPinmap(PinName_t pinName, GPIO_TypeDef **GPIOx, unsigned int *pin)
 }
 ```
 
-Defined in include/ecPinNames.h:155
+Defined in include/ecPinNames.h:162
 
 Convert a pin name to its GPIO port and pin number.
 
@@ -113,13 +114,22 @@ Convert a pin name to its GPIO port and pin number.
 > Only ports A, B, C, D, H are mapped. Any other port falls back to GPIOA.
 
 
+#### Example
+
+```cpp
+GPIO_TypeDef *port;
+unsigned int pin;
+ecPinmap(PA_5, &port, &pin);     // port = GPIOA, pin = 5
+port->ODR |= (1UL << pin);       // PA_5 = HIGH
+```
+
 #### Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `pinName` | [`PinName_t`](#pinname_t) | Pin name (e.g., PA_5) |
 | `GPIOx` | `GPIO_TypeDef **` | GPIO port pointer (e.g., GPIOA) |
-| `pin` | `unsigned int *` | Pin number, 0~15 |
+| `pin` | `unsigned int *` | Pin number, 0\~15 |
 
 <a id="rccclockdriver"></a>
 
@@ -154,13 +164,26 @@ void delay_ms_HSI(uint32_t ms) {
 }
 ```
 
-Defined in include/ecRCC2.h:49
+Defined in include/ecRCC2.h:60
 
 Approximate blocking delay using a busy-wait loop.
 
 > [!NOTE]
 > The loop count is estimated from EC_SYSCLK, so the timing is not exact. Use [delay_ms()](api-SysTick.md#delay_ms) (SysTick) when accurate timing is needed.
 
+
+#### Example
+
+```cpp
+RCC_HSI_init();
+GPIO_init(PA_5, OUTPUT);
+while (1) {
+    GPIO_write(PA_5, HIGH);
+    delay_ms_HSI(500);           // about 500 ms
+    GPIO_write(PA_5, LOW);
+    delay_ms_HSI(500);
+}
+```
 
 #### Parameters
 
@@ -195,13 +218,20 @@ void RCC_HSI_init() {
 }
 ```
 
-Defined in include/ecRCC2.h:55
+Defined in include/ecRCC2.h:71
 
 Use the internal HSI oscillator (16 MHz) as the system clock.
 
 > [!NOTE]
 > Sets EC_SYSCLK to 16000000.
 
+
+#### Example
+
+```cpp
+RCC_HSI_init();      // SYSCLK = 16 MHz, EC_SYSCLK = 16000000
+SysTick_init();      // 1 ms tick computed from 16 MHz
+```
 
 ---
 
@@ -258,7 +288,7 @@ void RCC_PLL_init() {
 }
 ```
 
-Defined in include/ecRCC2.h:65
+Defined in include/ecRCC2.h:87
 
 Use the PLL (from HSI) as the system clock at 84 MHz.
 
@@ -266,6 +296,14 @@ PLL: 16 MHz x 84 / 8 / 2 = 84 MHz. Flash latency = 2 wait states. Bus clocks: AH
 > [!NOTE]
 > Sets EC_SYSCLK to 84000000. Call before [SysTick_init()](api-SysTick.md#systick_init) and USART setup, since they compute their timing from EC_SYSCLK.
 
+
+#### Example
+
+```cpp
+RCC_PLL_init();      // SYSCLK = 84 MHz, EC_SYSCLK = 84000000
+SysTick_init();      // 1 ms tick computed from 84 MHz
+USART2_init();       // baud rate computed from APB1 = 42 MHz
+```
 
 ---
 
@@ -281,9 +319,18 @@ void RCC_GPIOA_enable()
 }
 ```
 
-Defined in include/ecRCC2.h:68
+Defined in include/ecRCC2.h:99
 
 Enable the AHB1 clock of GPIO port A.
+
+#### Example
+
+```cpp
+RCC_GPIOA_enable();                   // required before accessing GPIOA registers
+GPIOA->MODER &= ~(3UL << (2*5));
+GPIOA->MODER |=  (1UL << (2*5));      // PA_5 = OUTPUT
+// GPIO_init() calls this automatically for port A pins.
+```
 
 ---
 
@@ -299,9 +346,17 @@ void RCC_GPIOB_enable()
 }
 ```
 
-Defined in include/ecRCC2.h:71
+Defined in include/ecRCC2.h:110
 
 Enable the AHB1 clock of GPIO port B.
+
+#### Example
+
+```cpp
+RCC_GPIOB_enable();                   // required before accessing GPIOB registers
+GPIOB->MODER &= ~(3UL << (2*10));     // PB_10 = INPUT
+// GPIO_init() calls this automatically for port B pins.
+```
 
 ---
 
@@ -317,9 +372,17 @@ void RCC_GPIOC_enable()
 }
 ```
 
-Defined in include/ecRCC2.h:74
+Defined in include/ecRCC2.h:121
 
 Enable the AHB1 clock of GPIO port C.
+
+#### Example
+
+```cpp
+RCC_GPIOC_enable();                   // required before accessing GPIOC registers
+GPIOC->MODER &= ~(3UL << (2*13));     // PC_13 (user button) = INPUT
+// GPIO_init() calls this automatically for port C pins.
+```
 
 ---
 
@@ -335,9 +398,18 @@ void RCC_GPIOD_enable()
 }
 ```
 
-Defined in include/ecRCC2.h:77
+Defined in include/ecRCC2.h:133
 
 Enable the AHB1 clock of GPIO port D.
+
+#### Example
+
+```cpp
+RCC_GPIOD_enable();                   // required before accessing GPIOD registers
+GPIOD->MODER &= ~(3UL << (2*2));
+GPIOD->MODER |=  (1UL << (2*2));      // PD_2 = OUTPUT
+// GPIO_init() calls this automatically for port D pins.
+```
 
 ---
 
@@ -353,9 +425,16 @@ void RCC_GPIOE_enable()
 }
 ```
 
-Defined in include/ecRCC2.h:80
+Defined in include/ecRCC2.h:143
 
 Enable the AHB1 clock of GPIO port E.
+
+#### Example
+
+```cpp
+RCC_GPIOE_enable();                   // required before accessing GPIOE registers
+// Port E pins are not routed on the Nucleo-F411RE headers.
+```
 
 ## Variables
 
@@ -394,7 +473,7 @@ Initialize GPIO pins and configure mode, speed, output type, pull-up/down, and r
 | `void` | [`GPIO_pupd`](#gpio_pupd)  | Set the internal pull-up/pull-down resistor of a GPIO pin (PUPDR register). |
 | `void` | [`GPIO_write`](#gpio_write)  | Write a logic level to a GPIO output pin. |
 | `uint32_t` | [`GPIO_read`](#gpio_read)  | Read the logic level of a GPIO input pin. |
-| `void` | [`FND_init`](#fnd_init)  | Initialize the 8 segment pins (a~g, dp) as outputs. |
+| `void` | [`FND_init`](#fnd_init)  | Initialize the 8 segment pins (a\~g, dp) as outputs. |
 | `void` | [`FND_select_init`](#fnd_select_init)  | Initialize the digit-select pins as outputs. |
 | `void` | [`FND_display`](#fnd_display)  | Display a number on the currently selected digit. |
 | `void` | [`FND_select`](#fnd_select)  | Select which digit of the display is active. |
@@ -428,7 +507,7 @@ void GPIO_init(PinName_t pinName, uint32_t mode){     // clock enable
 	
 	
 	// You can also make and use a more general function of
-	// void RCC_GPIO_enable(GPIO_TypeDef *Port); --> ?쒕룄?대낫湲?
+	// void RCC_GPIO_enable(GPIO_TypeDef *Port); --> 시도해보기
 
 	GPIO_mode(pinName, mode);
 }
@@ -445,8 +524,8 @@ Initialize a GPIO pin: enable the port clock and set the pin mode.
 #### Example
 
 ```cpp
-#define OUTPUT 0x01
-GPIO_init(A_13, OUTPUT);
+GPIO_init(PA_5, OUTPUT);     // LED (LD2)
+GPIO_init(PC_13, INPUT);     // user button (B1)
 ```
 
 #### Parameters
@@ -473,9 +552,16 @@ void GPIO_mode(PinName_t pinName, uint32_t mode){
 }
 ```
 
-Defined in include/ecGPIO2.h:82
+Defined in include/ecGPIO2.h:87
 
 Set the mode of a GPIO pin (MODER register).
+
+#### Example
+
+```cpp
+GPIO_mode(PA_5, OUTPUT);     // LED
+GPIO_mode(PA_2, AF);         // USART2 TX
+```
 
 #### Parameters
 
@@ -501,7 +587,7 @@ void GPIO_ospeed(PinName_t pinName, uint32_t speed){
 }
 ```
 
-Defined in include/ecGPIO2.h:95
+Defined in include/ecGPIO2.h:100
 
 Set the output speed of a GPIO pin (OSPEEDR register).
 
@@ -512,8 +598,8 @@ Set the output speed of a GPIO pin (OSPEEDR register).
 #### Example
 
 ```cpp
-#define FASTSPEED 0x02
-GPIO_ospeed(A_13, FASTSPEED);
+GPIO_init(PA_5, OUTPUT);
+GPIO_ospeed(PA_5, FASTSPEED);
 ```
 
 #### Parameters
@@ -540,7 +626,7 @@ void GPIO_otype(PinName_t pinName, uint32_t type){
 }
 ```
 
-Defined in include/ecGPIO2.h:108
+Defined in include/ecGPIO2.h:113
 
 Set the output type of a GPIO pin (OTYPER register).
 
@@ -551,8 +637,8 @@ Set the output type of a GPIO pin (OTYPER register).
 #### Example
 
 ```cpp
-#define PUSH_PULL 0x00
-GPIO_ospeed(A_13, PUSH_PULL);
+GPIO_init(PA_5, OUTPUT);
+GPIO_otype(PA_5, PUSH_PULL);
 ```
 
 #### Parameters
@@ -579,9 +665,16 @@ void GPIO_pupd(PinName_t pinName, uint32_t pupd){
 }
 ```
 
-Defined in include/ecGPIO2.h:115
+Defined in include/ecGPIO2.h:125
 
 Set the internal pull-up/pull-down resistor of a GPIO pin (PUPDR register).
+
+#### Example
+
+```cpp
+GPIO_init(PA_0, INPUT);
+GPIO_pupd(PA_0, PULL_UP);    // switch connected between PA_0 and GND
+```
 
 #### Parameters
 
@@ -606,7 +699,7 @@ void GPIO_write(PinName_t pinName, uint32_t Output){
 }
 ```
 
-Defined in include/ecGPIO2.h:128
+Defined in include/ecGPIO2.h:138
 
 Write a logic level to a GPIO output pin.
 
@@ -647,7 +740,7 @@ uint32_t GPIO_read(PinName_t pinName){
 }
 ```
 
-Defined in include/ecGPIO2.h:140
+Defined in include/ecGPIO2.h:150
 
 Read the logic level of a GPIO input pin.
 
@@ -685,9 +778,16 @@ void FND_init(PinName_t *pinFND){
 }
 ```
 
-Defined in include/ecGPIO2.h:150
+Defined in include/ecGPIO2.h:165
 
-Initialize the 8 segment pins (a~g, dp) as outputs.
+Initialize the 8 segment pins (a\~g, dp) as outputs.
+
+#### Example
+
+```cpp
+PinName_t pinsFND[8] = {PA_7, PB_6, PC_7, PA_9, PA_8, PB_10, PA_6, PA_10};  // a, b, c, d, e, f, g, dp
+FND_init(pinsFND);
+```
 
 #### Parameters
 
@@ -710,9 +810,16 @@ void FND_select_init(PinName_t *selectFND){
 }
 ```
 
-Defined in include/ecGPIO2.h:156
+Defined in include/ecGPIO2.h:176
 
 Initialize the digit-select pins as outputs.
+
+#### Example
+
+```cpp
+PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};    // digit 0, 1, 2, 3
+FND_select_init(pinsSel);
+```
 
 #### Parameters
 
@@ -737,7 +844,7 @@ void FND_display(uint8_t num){
 }
 ```
 
-Defined in include/ecGPIO2.h:168
+Defined in include/ecGPIO2.h:188
 
 Display a number on the currently selected digit.
 
@@ -756,7 +863,7 @@ FND_display(numDisplay1);
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `num` | `uint8_t` | Number to display, 0~11 (index of numberFND) |
+| `num` | `uint8_t` | Number to display, 0\~11 (index of numberFND) |
 
 ---
 
@@ -772,7 +879,7 @@ void FND_select(uint8_t digit){
 }
 ```
 
-Defined in include/ecGPIO2.h:180
+Defined in include/ecGPIO2.h:200
 
 Select which digit of the display is active.
 
@@ -807,9 +914,17 @@ void FND_select_pupd(PinName_t *selectFND, uint32_t pupd){
 }
 ```
 
-Defined in include/ecGPIO2.h:187
+Defined in include/ecGPIO2.h:213
 
 Set pull-up/pull-down for all digit-select pins.
+
+#### Example
+
+```cpp
+PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
+FND_select_init(pinsSel);
+FND_select_pupd(pinsSel, NPUPD);
+```
 
 #### Parameters
 
@@ -832,9 +947,17 @@ void FND_select_otype(PinName_t *selectFND, uint32_t otype){
 }
 ```
 
-Defined in include/ecGPIO2.h:194
+Defined in include/ecGPIO2.h:226
 
 Set output type for all digit-select pins.
+
+#### Example
+
+```cpp
+PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
+FND_select_init(pinsSel);
+FND_select_otype(pinsSel, PUSH_PULL);
+```
 
 #### Parameters
 
@@ -857,9 +980,17 @@ void FND_select_ospeed(PinName_t *selectFND, uint32_t ospeed){
 }
 ```
 
-Defined in include/ecGPIO2.h:201
+Defined in include/ecGPIO2.h:239
 
 Set output speed for all digit-select pins.
+
+#### Example
+
+```cpp
+PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
+FND_select_init(pinsSel);
+FND_select_ospeed(pinsSel, MEDSPEED);
+```
 
 #### Parameters
 
@@ -872,7 +1003,7 @@ Set output speed for all digit-select pins.
 
 | Return | Name | Description |
 |--------|------|-------------|
-| `int` | [`numberFND`](#numberfnd)  | Segment patterns for each displayable number. [number][segment a~g, dp] |
+| `int` | [`numberFND`](#numberfnd)  | Segment patterns for each displayable number. [number][segment a\~g, dp] |
 
 ---
 
@@ -884,9 +1015,9 @@ Set output speed for all digit-select pins.
 int numberFND[12][8]
 ```
 
-Defined in include/ecGPIO2.h:144
+Defined in include/ecGPIO2.h:154
 
-Segment patterns for each displayable number. [number][segment a~g, dp]
+Segment patterns for each displayable number. [number][segment a\~g, dp]
 
 <a id="systicktimer"></a>
 
@@ -941,13 +1072,20 @@ void SysTick_init(void){
 }
 ```
 
-Defined in include/ecSysTick2.h:51
+Defined in include/ecSysTick2.h:56
 
 Configure SysTick to interrupt every 1 ms and enable it (NVIC priority 15).
 
 > [!NOTE]
 > Call after [RCC_HSI_init()](api-RCC.md#rcc_hsi_init) or [RCC_PLL_init()](api-RCC.md#rcc_pll_init), because the reload value is computed from EC_SYSCLK.
 
+
+#### Example
+
+```cpp
+RCC_PLL_init();
+SysTick_init();      // msTicks increases by 1 every 1 ms
+```
 
 ---
 
@@ -961,7 +1099,7 @@ void SysTick_Handler(void){
 }
 ```
 
-Defined in include/ecSysTick2.h:57
+Defined in include/ecSysTick2.h:62
 
 SysTick interrupt handler. Called by hardware every 1 ms; increments msTicks.
 
@@ -981,7 +1119,7 @@ void SysTick_counter(void){
 }
 ```
 
-Defined in include/ecSysTick2.h:63
+Defined in include/ecSysTick2.h:68
 
 Increment msTicks by 1.
 
@@ -1003,7 +1141,7 @@ void delay_ms (uint32_t msec){
 }
 ```
 
-Defined in include/ecSysTick2.h:72
+Defined in include/ecSysTick2.h:88
 
 Blocking delay in milliseconds, based on msTicks.
 
@@ -1014,6 +1152,19 @@ Blocking delay in milliseconds, based on msTicks.
 > [!WARNING]
 > Do not call inside an ISR whose priority is equal to or higher than SysTick (priority 15). msTicks will not increase and the program will hang.
 
+
+#### Example
+
+```cpp
+SysTick_init();
+GPIO_init(PA_5, OUTPUT);
+while (1) {
+    GPIO_write(PA_5, HIGH);
+    delay_ms(500);
+    GPIO_write(PA_5, LOW);
+    delay_ms(500);
+}
+```
 
 #### Parameters
 
@@ -1034,13 +1185,20 @@ void SysTick_reset(void)
 }
 ```
 
-Defined in include/ecSysTick2.h:78
+Defined in include/ecSysTick2.h:99
 
 Reset the SysTick current value register (VAL) to 0.
 
 > [!NOTE]
 > This does not reset msTicks.
 
+
+#### Example
+
+```cpp
+SysTick_reset();                  // restart the current 1 ms period from the reload value
+uint32_t start = SysTick_val();
+```
 
 ---
 
@@ -1054,12 +1212,21 @@ uint32_t SysTick_val(void) {
 }
 ```
 
-Defined in include/ecSysTick2.h:84
+Defined in include/ecSysTick2.h:112
 
 Read the SysTick current value register (VAL).
 
 #### Returns
-Current counter value. It counts down from the reload value to 0 every 1 ms.
+Current counter value. It counts down from the reload value to 0 every 1 ms. 
+
+#### Example
+
+```cpp
+uint32_t start = SysTick_val();
+GPIO_write(PA_5, HIGH);
+uint32_t end = SysTick_val();
+uint32_t cycles = start - end;    // down-counter; valid if no reload happened in between
+```
 
 ## Variables
 
@@ -1195,7 +1362,7 @@ void EXTI_init(PinName_t pinName, uint32_t trig_type, uint32_t priority){
 }
 ```
 
-Defined in include/ecEXTI2.h:54
+Defined in include/ecEXTI2.h:61
 
 Connect a GPIO pin to its EXTI line, set the trigger edge, and enable the interrupt in NVIC.
 
@@ -1208,16 +1375,25 @@ Connect a GPIO pin to its EXTI line, set the trigger edge, and enable the interr
 
 
 > [!NOTE]
-> Lines 5~9 share EXTI9_5_IRQHandler(), lines 10~15 share EXTI15_10_IRQHandler().
+> Lines 5\~9 share EXTI9_5_IRQHandler(), lines 10\~15 share EXTI15_10_IRQHandler().
 
+
+#### Example
+
+```cpp
+GPIO_init(PC_13, INPUT);
+GPIO_pupd(PC_13, PULL_UP);
+EXTI_init(PC_13, FALL, 0);        // button press = falling edge, priority 0 (highest)
+// Handler: EXTI15_10_IRQHandler() (line 13)
+```
 
 #### Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Pin to use as interrupt source (e.g., PC_13). The pin number (0~15) selects the EXTI line, the port selects the source. |
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Pin to use as interrupt source (e.g., PC_13). The pin number (0\~15) selects the EXTI line, the port selects the source. |
 | `trig_type` | `uint32_t` | FALL, RISE, or BOTH |
-| `priority` | `uint32_t` | NVIC priority, 0 (highest) ~ 15 (lowest) |
+| `priority` | `uint32_t` | NVIC priority, 0 (highest) \~ 15 (lowest) |
 
 ---
 
@@ -1235,13 +1411,21 @@ void EXTI_enable(PinName_t pinName) {
 }
 ```
 
-Defined in include/ecEXTI2.h:61
+Defined in include/ecEXTI2.h:74
 
 Enable (unmask) the EXTI interrupt of a pin.
 
 > [!NOTE]
 > [EXTI_init()](#exti_init) must be called first.
 
+
+#### Example
+
+```cpp
+EXTI_disable(PC_13);              // ignore the button while the motor runs
+stepper_step(HALFSTEP_PER_REV, DIR_CW);
+EXTI_enable(PC_13);               // accept the button again
+```
 
 #### Parameters
 
@@ -1265,9 +1449,17 @@ void EXTI_disable(PinName_t pinName) {
 }
 ```
 
-Defined in include/ecEXTI2.h:67
+Defined in include/ecEXTI2.h:86
 
 Disable (mask) the EXTI interrupt of a pin. The configuration is kept.
+
+#### Example
+
+```cpp
+EXTI_disable(PC_13);              // ignore the button while the motor runs
+stepper_step(HALFSTEP_PER_REV, DIR_CW);
+EXTI_enable(PC_13);
+```
 
 #### Parameters
 
@@ -1292,7 +1484,7 @@ uint32_t is_pending_EXTI(PinName_t pinName) {
 }
 ```
 
-Defined in include/ecEXTI2.h:75
+Defined in include/ecEXTI2.h:106
 
 Check whether the EXTI line of a pin has a pending interrupt.
 
@@ -1302,6 +1494,20 @@ Check whether the EXTI line of a pin has a pending interrupt.
 > [!NOTE]
 > Use inside the IRQ handler to find which line triggered.
 
+
+#### Example
+
+```cpp
+volatile uint32_t ledState = LOW;
+
+void EXTI15_10_IRQHandler(void) {
+    if (is_pending_EXTI(PC_13)) {     // was it line 13?
+        ledState = !ledState;
+        GPIO_write(PA_5, ledState);
+        clear_pending_EXTI(PC_13);
+    }
+}
+```
 
 #### Parameters
 
@@ -1327,13 +1533,27 @@ void clear_pending_EXTI(PinName_t pinName){
 }
 ```
 
-Defined in include/ecEXTI2.h:82
+Defined in include/ecEXTI2.h:125
 
 Clear the pending flag of the EXTI line of a pin.
 
 > [!NOTE]
 > Call at the end of the IRQ handler. If not cleared, the handler is re-entered repeatedly.
 
+
+#### Example
+
+```cpp
+volatile uint32_t ledState = LOW;
+
+void EXTI15_10_IRQHandler(void) {
+    if (is_pending_EXTI(PC_13)) {
+        ledState = !ledState;
+        GPIO_write(PA_5, ledState);
+        clear_pending_EXTI(PC_13);    // without this, the handler is re-entered forever
+    }
+}
+```
 
 #### Parameters
 
@@ -1452,7 +1672,7 @@ Half steps per output-shaft revolution (4096)
 
 | Name | Description |
 |------|-------------|
-| [`StateNum`](#statenum)  | FSM state numbers. Full-step uses S0~S3, half-step uses S0~S7. |
+| [`StateNum`](#statenum)  | FSM state numbers. Full-step uses S0\~S3, half-step uses S0\~S7. |
 
 ---
 
@@ -1466,7 +1686,7 @@ enum StateNum
 
 Defined in include/ecStepper2.h:58
 
-FSM state numbers. Full-step uses S0~S3, half-step uses S0~S7.
+FSM state numbers. Full-step uses S0\~S3, half-step uses S0\~S7.
 
 `S0` · `S1` · `S2` · `S3` · `S4` · `S5` · `S6` · `S7`
 
@@ -1597,7 +1817,7 @@ Rotate the motor for a given number of steps (blocking).
 
 ```cpp
 stepper_step(HALFSTEP_PER_REV*5, DIR_CW);    // 5 revolutions, CW (half-stepping)
-stepper_step(STEP_PER_REV*5, DIR_CCW);       // 5 revolutions, CCW (full-stepping)
+stepper_step(FULLSTEP_PER_REV*5, DIR_CCW);   // 5 revolutions, CCW (full-stepping)
 ```
 
 #### Parameters
@@ -1644,7 +1864,7 @@ stepper_out(S1);    // full-stepping: A=LOW, B=HIGH, A'=HIGH, B'=LOW
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `state` | `uint32_t` | FSM state number (S0~S3 for FULL, S0~S7 for HALF) |
+| `state` | `uint32_t` | FSM state number (S0\~S3 for FULL, S0\~S7 for HALF) |
 
 ---
 
@@ -1972,7 +2192,7 @@ void USART_init(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
 }
 ```
 
-Defined in include/ecUART2.h:90
+Defined in include/ecUART2.h:96
 
 Initialize a USART with given TX/RX pins and baud rate, and enable its RX interrupt.
 
@@ -1980,6 +2200,14 @@ Frame format: 8 data bits, no parity, 1 stop bit, oversampling x16.
 > [!NOTE]
 > Call after [RCC_PLL_init()](api-RCC.md#rcc_pll_init) or [RCC_HSI_init()](api-RCC.md#rcc_hsi_init), since the baud rate is computed from EC_SYSCLK.
 
+
+#### Example
+
+```cpp
+RCC_PLL_init();
+USART_init(USART2, PA_2, PA_3, BAUD_9600);     // PC (USB virtual COM)
+USART_init(USART1, PA_9, PA_10, BAUD_9600);    // e.g., Bluetooth module
+```
 
 #### Parameters
 
@@ -2021,13 +2249,19 @@ void USART_baud(USART_TypeDef* USARTx, uint32_t baud){
 }
 ```
 
-Defined in include/ecUART2.h:98
+Defined in include/ecUART2.h:108
 
 Set the baud rate of a USART (BRR register).
 
 > [!NOTE]
 > Uses APB1 (EC_SYSCLK / 2) for USART2 and APB2 (EC_SYSCLK) for USART1/6.
 
+
+#### Example
+
+```cpp
+USART_baud(USART2, BAUD_115200);
+```
 
 #### Parameters
 
@@ -2084,9 +2318,15 @@ void USART_pins(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO
 }
 ```
 
-Defined in include/ecUART2.h:106
+Defined in include/ecUART2.h:120
 
 Configure TX/RX pins for a USART: alternate function, push-pull, no pull-up/down, high speed.
+
+#### Example
+
+```cpp
+USART_pins(USART6, PA_11, PA_12);   // TX = PA_11, RX = PA_12, AF8
+```
 
 #### Parameters
 
@@ -2108,9 +2348,16 @@ void USART1_baud(uint32_t baud){
 }
 ```
 
-Defined in include/ecUART2.h:113
+Defined in include/ecUART2.h:132
 
 Set the baud rate of USART1.
+
+#### Example
+
+```cpp
+USART1_init();               // 9600 bps by default
+USART1_baud(BAUD_38400);
+```
 
 #### Parameters
 
@@ -2130,9 +2377,16 @@ void USART2_baud(uint32_t baud){
 }
 ```
 
-Defined in include/ecUART2.h:119
+Defined in include/ecUART2.h:143
 
 Set the baud rate of USART2.
+
+#### Example
+
+```cpp
+USART2_init();               // 9600 bps by default
+USART2_baud(BAUD_115200);
+```
 
 #### Parameters
 
@@ -2238,9 +2492,16 @@ void USART1_init(void){
 }
 ```
 
-Defined in include/ecUART2.h:129
+Defined in include/ecUART2.h:158
 
 Initialize USART1 with default settings: PA_9 (TX), PA_10 (RX), 9600 bps, RX interrupt enabled.
+
+#### Example
+
+```cpp
+RCC_PLL_init();
+USART1_init();               // PA_9 = TX, PA_10 = RX, 9600 bps
+```
 
 ---
 
@@ -2340,13 +2601,21 @@ void USART2_init(void){
 }
 ```
 
-Defined in include/ecUART2.h:135
+Defined in include/ecUART2.h:170
 
 Initialize USART2 with default settings: PA_2 (TX), PA_3 (RX), 9600 bps, RX interrupt enabled.
 
 > [!NOTE]
 > USART2 is connected to the PC through the Nucleo USB (virtual COM port).
 
+
+#### Example
+
+```cpp
+RCC_PLL_init();
+USART2_init();               // PA_2 = TX, PA_3 = RX, 9600 bps
+printf("Hello Nucleo\r\n");  // printf() is sent to USART2
+```
 
 ---
 
@@ -2360,9 +2629,16 @@ void USART1_write(uint8_t* buffer, uint32_t nBytes){
 }
 ```
 
-Defined in include/ecUART2.h:144
+Defined in include/ecUART2.h:184
 
 Send bytes through USART1 (blocking).
+
+#### Example
+
+```cpp
+uint8_t msg[] = "AT\r\n";
+USART1_write(msg, sizeof(msg) - 1);
+```
 
 #### Parameters
 
@@ -2383,9 +2659,16 @@ void USART2_write(uint8_t* buffer, uint32_t nBytes){
 }
 ```
 
-Defined in include/ecUART2.h:151
+Defined in include/ecUART2.h:196
 
 Send bytes through USART2 (blocking).
+
+#### Example
+
+```cpp
+uint8_t msg[] = "Hello\r\n";
+USART2_write(msg, sizeof(msg) - 1);
+```
 
 #### Parameters
 
@@ -2406,12 +2689,23 @@ uint8_t USART1_read(void){
 }
 ```
 
-Defined in include/ecUART2.h:157
+Defined in include/ecUART2.h:211
 
 Receive one byte from USART1 (blocking until data arrives).
 
 #### Returns
-Received byte
+Received byte 
+
+#### Example
+
+```cpp
+void USART1_IRQHandler(void) {
+    if (is_USART1_RXNE()) {
+        uint8_t c = USART1_read();
+        USART2_write(&c, 1);         // forward to PC
+    }
+}
+```
 
 ---
 
@@ -2425,12 +2719,23 @@ uint8_t USART2_read(void){
 }
 ```
 
-Defined in include/ecUART2.h:163
+Defined in include/ecUART2.h:226
 
 Receive one byte from USART2 (blocking until data arrives).
 
 #### Returns
-Received byte
+Received byte 
+
+#### Example
+
+```cpp
+void USART2_IRQHandler(void) {
+    if (is_USART2_RXNE()) {
+        uint8_t c = USART2_read();
+        USART2_write(&c, 1);         // echo back to PC
+    }
+}
+```
 
 ---
 
@@ -2444,12 +2749,23 @@ uint32_t is_USART1_RXNE(void){
 }
 ```
 
-Defined in include/ecUART2.h:171
+Defined in include/ecUART2.h:243
 
 Check whether USART1 has received data (RXNE flag).
 
 #### Returns
-1 if data is ready to read, 0 otherwise
+1 if data is ready to read, 0 otherwise 
+
+#### Example
+
+```cpp
+void USART1_IRQHandler(void) {
+    if (is_USART1_RXNE()) {          // data received?
+        uint8_t c = USART1_read();
+        USART2_write(&c, 1);
+    }
+}
+```
 
 ---
 
@@ -2463,12 +2779,23 @@ uint32_t is_USART2_RXNE(void){
 }
 ```
 
-Defined in include/ecUART2.h:177
+Defined in include/ecUART2.h:258
 
 Check whether USART2 has received data (RXNE flag).
 
 #### Returns
-1 if data is ready to read, 0 otherwise
+1 if data is ready to read, 0 otherwise 
+
+#### Example
+
+```cpp
+void USART2_IRQHandler(void) {
+    if (is_USART2_RXNE()) {          // data received?
+        uint8_t cmd = USART2_read();
+        if (cmd == 'L') GPIO_write(PA_5, HIGH);
+    }
+}
+```
 
 ---
 
@@ -2487,9 +2814,15 @@ void USART_clock_enable(USART_TypeDef* USARTx){
 }
 ```
 
-Defined in include/ecUART2.h:185
+Defined in include/ecUART2.h:270
 
 Enable the peripheral clock of a USART.
+
+#### Example
+
+```cpp
+USART_clock_enable(USART6);      // APB2
+```
 
 #### Parameters
 
@@ -2522,9 +2855,16 @@ void USART_write(USART_TypeDef * USARTx, uint8_t *buffer, uint32_t nBytes) {
 }
 ```
 
-Defined in include/ecUART2.h:193
+Defined in include/ecUART2.h:283
 
 Send bytes through a USART (blocking). Waits for TXE before each byte and TC at the end.
+
+#### Example
+
+```cpp
+uint8_t msg[] = "Hello\r\n";
+USART_write(USART6, msg, sizeof(msg) - 1);
+```
 
 #### Parameters
 
@@ -2549,12 +2889,23 @@ uint8_t USART_read(USART_TypeDef * USARTx){
 }
 ```
 
-Defined in include/ecUART2.h:200
+Defined in include/ecUART2.h:299
 
 Receive one byte from a USART (blocking until RXNE is set).
 
 #### Returns
-Received byte
+Received byte 
+
+#### Example
+
+```cpp
+void USART6_IRQHandler(void) {
+    if (is_USART_RXNE(USART6)) {
+        uint8_t c = USART_read(USART6);
+        USART_write(USART2, &c, 1);   // forward to PC
+    }
+}
+```
 
 #### Parameters
 
@@ -2574,12 +2925,23 @@ uint32_t is_USART_RXNE(USART_TypeDef * USARTx){
 }
 ```
 
-Defined in include/ecUART2.h:207
+Defined in include/ecUART2.h:315
 
 Check whether a USART has received data (RXNE flag).
 
 #### Returns
-1 if data is ready to read, 0 otherwise
+1 if data is ready to read, 0 otherwise 
+
+#### Example
+
+```cpp
+void USART6_IRQHandler(void) {
+    if (is_USART_RXNE(USART6)) {     // data received?
+        uint8_t c = USART_read(USART6);
+        USART_write(USART2, &c, 1);
+    }
+}
+```
 
 #### Parameters
 
@@ -2600,9 +2962,15 @@ void USART_delay(uint32_t us) {
 }
 ```
 
-Defined in include/ecUART2.h:213
+Defined in include/ecUART2.h:325
 
 Approximate busy-wait delay used between transmitted bytes.
+
+#### Example
+
+```cpp
+USART_delay(300);                // about 300 us (not calibrated)
+```
 
 #### Parameters
 
@@ -2615,4 +2983,3 @@ Approximate busy-wait delay used between transmitted bytes.
 # MCU Initialization
 
 One-call default setup of the MCU.
-

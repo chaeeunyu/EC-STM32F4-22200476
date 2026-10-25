@@ -1,14 +1,18 @@
 #!/usr/bin/env python3
-"""
+r"""
 fix_md.py - moxygen 출력 Markdown을 GitHub 렌더링에 맞게 후처리
 
 1. Description 칸이 전부 비어 있는 표 -> 값 목록 한 줄로 변환
 2. :::note ... :::  -> > [!NOTE] (GitHub alert)
 3. {#anchor}        -> <a id="anchor"></a>
+4. 코드 밖의 ~       -> \~  (GitHub에서 ~...~ 가 취소선(strikethrough)이 되는 것 방지)
 
 사용법:
-    python fix_md.py README.md
+    python fix_md.py README.md                     # 이미 있는 파일을 고침
     python fix_md.py README.md "api-*.md"
+    python fix_md.py --merge README.md intro.md api-PinNames.md ...
+        # 여러 md를 UTF-8로 합쳐서 README.md를 만든 뒤 고침
+        # (PowerShell Get-Content/Set-Content 대신 사용 -> 한글 깨짐 없음)
 여러 번 실행해도 결과가 같다 (idempotent).
 """
 import glob
@@ -96,11 +100,34 @@ def fix_empty_tables(lines):
     return out
 
 
+# ---------- 4. ~ 취소선 방지 ----------
+# 코드 블록(```), inline code(`...`), 링크 주소(](...)) 안은 건드리지 않음
+_PROTECT = re.compile(r"(`[^`]*`|\]\([^)]*\))")
+
+
+def escape_tildes(lines):
+    out, in_fence = [], False
+    for line in lines:
+        if re.match(r"\s*(```|~~~)", line):
+            in_fence = not in_fence
+            out.append(line)
+            continue
+        if in_fence:
+            out.append(line)
+            continue
+        parts = _PROTECT.split(line)
+        for k in range(0, len(parts), 2):          # 짝수 index = 보호 구간 밖
+            parts[k] = re.sub(r"(?<!\\)~", r"\\~", parts[k])
+        out.append("".join(parts))
+    return out
+
+
 def process(text):
     lines = text.splitlines()
     lines = fix_anchors(lines)
     lines = fix_admonitions(lines)
     lines = fix_empty_tables(lines)
+    lines = escape_tildes(lines)
     return lines
 
 
@@ -109,9 +136,26 @@ def main():
         print(__doc__)
         sys.exit(1)
 
+    args = sys.argv[1:]
+
+    # --merge OUT IN1 IN2 ... : UTF-8로 읽어서 합치기
+    if args[0] == "--merge":
+        if len(args) < 3:
+            print(__doc__)
+            sys.exit(1)
+        out_path, inputs = args[1], args[2:]
+        chunks = []
+        for path in inputs:
+            with open(path, encoding="utf-8-sig", errors="surrogateescape") as f:
+                chunks.append(f.read().rstrip("\r\n"))
+        with open(out_path, "w", encoding="utf-8", errors="surrogateescape", newline="\n") as f:
+            f.write("\n\n".join(chunks) + "\n")
+        print(f"merged: {len(inputs)} files -> {out_path}")
+        args = [out_path]
+
     # Windows PowerShell/cmd는 *를 펼쳐주지 않으므로 직접 glob
     files = []
-    for pattern in sys.argv[1:]:
+    for pattern in args:
         files += glob.glob(pattern) or [pattern]
 
     for path in files:
