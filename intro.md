@@ -10,6 +10,7 @@ Firmware for STM32F4
 
 folder structure
 
+```text
 EC/
 ├── intro.md   	
 ├── lab
@@ -20,3 +21,4 @@ EC/
 ├── api-*.md      ← moxygen creates it
 ├── README.md     ← doxygen + moxygen cooperation
 └── Doxyfile
+```
