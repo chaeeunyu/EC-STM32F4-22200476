@@ -99,7 +99,7 @@ void stepper_speed (uint32_t speedRPM);
  * @par Example
  * @code
  * stepper_step(HALFSTEP_PER_REV*5, DIR_CW);    // 5 revolutions, CW (half-stepping)
- * stepper_step(STEP_PER_REV*5, DIR_CCW);       // 5 revolutions, CCW (full-stepping)
+ * stepper_step(FULLSTEP_PER_REV*5, DIR_CCW);   // 5 revolutions, CCW (full-stepping)
  * @endcode
  */
 void stepper_step(uint32_t steps, uint32_t direction);

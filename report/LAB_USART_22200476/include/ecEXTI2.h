@@ -50,6 +50,13 @@ Description      : ecEXTI.h
  * @note   Each EXTI line is shared by all ports with the same pin number
  *         (e.g., PA_13 and PC_13 cannot both be used).
  * @note   Lines 5~9 share EXTI9_5_IRQHandler(), lines 10~15 share EXTI15_10_IRQHandler().
+ * @par Example
+ * @code
+ * GPIO_init(PC_13, INPUT);
+ * GPIO_pupd(PC_13, PULL_UP);
+ * EXTI_init(PC_13, FALL, 0);        // button press = falling edge, priority 0 (highest)
+ * // Handler: EXTI15_10_IRQHandler() (line 13)
+ * @endcode
  */
 void EXTI_init(PinName_t pinName, uint32_t trig_type,uint32_t priority);
 
@@ -57,12 +64,24 @@ void EXTI_init(PinName_t pinName, uint32_t trig_type,uint32_t priority);
  * @brief  Enable (unmask) the EXTI interrupt of a pin.
  * @param[in] pinName  Pin whose EXTI line is enabled
  * @note   EXTI_init() must be called first.
+ * @par Example
+ * @code
+ * EXTI_disable(PC_13);              // ignore the button while the motor runs
+ * stepper_step(HALFSTEP_PER_REV, DIR_CW);
+ * EXTI_enable(PC_13);               // accept the button again
+ * @endcode
  */
 void EXTI_enable(PinName_t pinName);
 
 /**
  * @brief  Disable (mask) the EXTI interrupt of a pin. The configuration is kept.
  * @param[in] pinName  Pin whose EXTI line is disabled
+ * @par Example
+ * @code
+ * EXTI_disable(PC_13);              // ignore the button while the motor runs
+ * stepper_step(HALFSTEP_PER_REV, DIR_CW);
+ * EXTI_enable(PC_13);
+ * @endcode
  */
 void EXTI_disable(PinName_t pinName);
 
@@ -71,6 +90,18 @@ void EXTI_disable(PinName_t pinName);
  * @param[in] pinName  Pin to check
  * @return 1 if pending, 0 otherwise
  * @note   Use inside the IRQ handler to find which line triggered.
+ * @par Example
+ * @code
+ * volatile uint32_t ledState = LOW;
+ *
+ * void EXTI15_10_IRQHandler(void) {
+ *     if (is_pending_EXTI(PC_13)) {     // was it line 13?
+ *         ledState = !ledState;
+ *         GPIO_write(PA_5, ledState);
+ *         clear_pending_EXTI(PC_13);
+ *     }
+ * }
+ * @endcode
  */
 uint32_t is_pending_EXTI(PinName_t pinName);
 
@@ -78,6 +109,18 @@ uint32_t is_pending_EXTI(PinName_t pinName);
  * @brief  Clear the pending flag of the EXTI line of a pin.
  * @param[in] pinName  Pin whose pending flag is cleared
  * @note   Call at the end of the IRQ handler. If not cleared, the handler is re-entered repeatedly.
+ * @par Example
+ * @code
+ * volatile uint32_t ledState = LOW;
+ *
+ * void EXTI15_10_IRQHandler(void) {
+ *     if (is_pending_EXTI(PC_13)) {
+ *         ledState = !ledState;
+ *         GPIO_write(PA_5, ledState);
+ *         clear_pending_EXTI(PC_13);    // without this, the handler is re-entered forever
+ *     }
+ * }
+ * @endcode
  */
 void clear_pending_EXTI(PinName_t pinName);
 

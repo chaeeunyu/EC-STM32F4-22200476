@@ -68,8 +68,8 @@ extern "C" {
  * @note   Call this before any other GPIO_* function on the same pin.
   * @par Example
  * @code
- * #define OUTPUT 0x01
- * GPIO_init(A_13, OUTPUT);
+ * GPIO_init(PA_5, OUTPUT);     // LED (LD2)
+ * GPIO_init(PC_13, INPUT);     // user button (B1)
  * @endcode
  */
 void GPIO_init(PinName_t pinName, uint32_t mode);
@@ -78,6 +78,11 @@ void GPIO_init(PinName_t pinName, uint32_t mode);
  * @brief  Set the mode of a GPIO pin (MODER register).
  * @param[in] pinName  Target pin (e.g., PA_5)
  * @param[in] mode     INPUT, OUTPUT, AF, or ANALOG
+ * @par Example
+ * @code
+ * GPIO_mode(PA_5, OUTPUT);     // LED
+ * GPIO_mode(PA_2, AF);         // USART2 TX
+ * @endcode
  */
 void GPIO_mode(PinName_t pinName, uint32_t mode);
 
@@ -88,8 +93,8 @@ void GPIO_mode(PinName_t pinName, uint32_t mode);
  * @note   Effective only in OUTPUT or AF mode.
   * @par Example
  * @code
- * #define FASTSPEED 0x02
- * GPIO_ospeed(A_13, FASTSPEED);
+ * GPIO_init(PA_5, OUTPUT);
+ * GPIO_ospeed(PA_5, FASTSPEED);
  * @endcode
  */
 void GPIO_ospeed(PinName_t pinName, uint32_t speed);
@@ -101,8 +106,8 @@ void GPIO_ospeed(PinName_t pinName, uint32_t speed);
  * @note   Effective only in OUTPUT or AF mode.
   * @par Example
  * @code
- * #define PUSH_PULL 0x00
- * GPIO_ospeed(A_13, PUSH_PULL);
+ * GPIO_init(PA_5, OUTPUT);
+ * GPIO_otype(PA_5, PUSH_PULL);
  * @endcode
  */
 void GPIO_otype(PinName_t pinName, uint32_t type);
@@ -111,6 +116,11 @@ void GPIO_otype(PinName_t pinName, uint32_t type);
  * @brief  Set the internal pull-up/pull-down resistor of a GPIO pin (PUPDR register).
  * @param[in] pinName  Target pin
  * @param[in] pupd     NPUPD, PULL_UP, or PULL_DOWN
+ * @par Example
+ * @code
+ * GPIO_init(PA_0, INPUT);
+ * GPIO_pupd(PA_0, PULL_UP);    // switch connected between PA_0 and GND
+ * @endcode
  */
 void GPIO_pupd(PinName_t pinName, uint32_t pupd);
 
@@ -146,12 +156,22 @@ extern int numberFND[12][8];
 /**
  * @brief  Initialize the 8 segment pins (a~g, dp) as outputs.
  * @param[in] pinFND  Array of 8 pins, in the order a, b, c, d, e, f, g, dp
+ * @par Example
+ * @code
+ * PinName_t pinsFND[8] = {PA_7, PB_6, PC_7, PA_9, PA_8, PB_10, PA_6, PA_10};  // a, b, c, d, e, f, g, dp
+ * FND_init(pinsFND);
+ * @endcode
  */
 void FND_init(PinName_t *pinFND);
 
 /**
  * @brief  Initialize the digit-select pins as outputs.
  * @param[in] selectFND  Array of digit-select pins
+ * @par Example
+ * @code
+ * PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};    // digit 0, 1, 2, 3
+ * FND_select_init(pinsSel);
+ * @endcode
  */
 void FND_select_init(PinName_t *selectFND);
 
@@ -183,6 +203,12 @@ void FND_select(uint8_t digit);
  * @brief  Set pull-up/pull-down for all digit-select pins.
  * @param[in] selectFND  Array of digit-select pins
  * @param[in] pupd       NPUPD, PULL_UP, or PULL_DOWN
+ * @par Example
+ * @code
+ * PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
+ * FND_select_init(pinsSel);
+ * FND_select_pupd(pinsSel, NPUPD);
+ * @endcode
  */
 void FND_select_pupd(PinName_t *selectFND, uint32_t pupd);
 
@@ -190,6 +216,12 @@ void FND_select_pupd(PinName_t *selectFND, uint32_t pupd);
  * @brief  Set output type for all digit-select pins.
  * @param[in] selectFND  Array of digit-select pins
  * @param[in] otype      PUSH_PULL or OPEN_DRAIN
+ * @par Example
+ * @code
+ * PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
+ * FND_select_init(pinsSel);
+ * FND_select_otype(pinsSel, PUSH_PULL);
+ * @endcode
  */
 void FND_select_otype(PinName_t *selectFND, uint32_t otype);
 
@@ -197,6 +229,12 @@ void FND_select_otype(PinName_t *selectFND, uint32_t otype);
  * @brief  Set output speed for all digit-select pins.
  * @param[in] selectFND  Array of digit-select pins
  * @param[in] ospeed     LOWSPEED, MEDSPEED, FASTSPEED, or HIGHSPEED
+ * @par Example
+ * @code
+ * PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
+ * FND_select_init(pinsSel);
+ * FND_select_ospeed(pinsSel, MEDSPEED);
+ * @endcode
  */
 void FND_select_ospeed(PinName_t *selectFND, uint32_t ospeed);
 
