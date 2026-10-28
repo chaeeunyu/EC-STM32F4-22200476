@@ -320,6 +320,7 @@ USART1_baud(BAUD_38400);    // change USART1 to 38400 bps
 ##### 1. Definitions and global variables
 
 ```c
+#include <string.h>
 #include "ecSTM32F4v2.h"
 
 #define 	LED2  		PA_5
@@ -428,7 +429,7 @@ int main(void){
 }
 ```
 
-The main loop only checks the flags set by the ISRs. When a flag is set, the completed string or the error message is printed with `printf()` (retargeted to USART2), and the flag is cleared. All `printf()` calls are done here, not in the ISRs (see Discussion 4). The four `if` statements are separate, because these events are independent and can happen at the same time.
+The main loop only checks the flags set by the ISRs. When a flag is set, the completed string or the error message is printed with `printf()` (retargeted to USART2), and the flag is cleared. All `printf()` calls are done here, not in the ISRs (see Discussion 3). The four `if` statements are separate, because these events are independent and can happen at the same time.
 
 
 
@@ -538,7 +539,7 @@ This handler is called when a character from the other MCU arrives.
 
 - `'\0'` and `'\n'` are ignored so that they are not stored at the beginning of the next string.
 - **LED control** : If the character is `'L'` or `'H'`, LD2 is turned OFF/ON immediately, without waiting for Enter. `GPIO_write()` is a very short operation, so it is done inside the ISR.
-- **String buffering / overflow** : Same structure as `USART2_IRQHandler()`. The received data is not echoed back to USART1, because it would bounce between the two MCUs (see Troubleshooting 5).
+- **String buffering / overflow** : Same structure as `USART2_IRQHandler()`. The received data is not echoed back to USART1, because it would bounce between the two MCUs (see Troubleshooting 2).
 
 
 
@@ -654,7 +655,6 @@ The HC-06 is a Bluetooth 2.0 SPP (Serial Port Profile) module that works as a sl
 | Function                    | Port - Pin             | Configuration                                                |
 | --------------------------- | ---------------------- | ------------------------------------------------------------ |
 | **System Clock**            |                        | PLL 84MHz                                                    |
-| **USART2 : USB (ST-Link)**  | TXD: PA2<br/>RXD: PA3  | 9600 baud-rate (used for `printf` debug only)                |
 | **USART1 : MCU -Bluetooth** | TXD: PA9<br/>RXD: PA10 | No Parity, 8-bit Data,<br/>1-bit Stop bit,<br/>9600 baud-rate |
 | **Digital Out: LD2**        | PA5                    |                                                              |
 | **Motor Pin A, B, A', B'**  | PB10, PB4, PB5, PB3    | DOUT                                                         |
@@ -685,8 +685,8 @@ static uint8_t   newline = '\n';
 
 // ---------------------------- Pin Configuration ----------------------------
 // USART2: ST-Link Virtual COM Port (connected to PC via USB, used by printf)
-PinName_t pin_GPIO_TX2 = PA_2;
-PinName_t pin_GPIO_RX2 = PA_3;
+//PinName_t pin_GPIO_TX2 = PA_2;
+//PinName_t pin_GPIO_RX2 = PA_3;
 // USART1: connected to Bluetooth module (MCU TX -> BT RX, MCU RX -> BT TX)
 PinName_t pin_GPIO_TX1 = PA_9;
 PinName_t pin_GPIO_RX1 = PA_10;
@@ -714,7 +714,7 @@ void setup(void){
 	SysTick_init();     // Initialize SysTick timer (used for step timing / delay)
 
     // USART2: USB serial init (for printf debugging to PC)
-	USART_init(USART2, pin_GPIO_TX2, pin_GPIO_RX2, BAUD_9600);  
+	// USART_init(USART2, pin_GPIO_TX2, pin_GPIO_RX2, BAUD_9600);  
 	
 	// USART1: Bluetooth module serial init
 	// Baud rate must match the BT module setting
@@ -724,11 +724,11 @@ void setup(void){
     GPIO_init(LED2, OUTPUT);
     // initialize stepper motor in full-step mode with the 4 phase pins
     stepper_init(FULL, pinStepper); 
-    stepper_speed(10);   // motor speed = 10rpm
+    stepper_speed(10, FULLSTEP_PER_REV);   // motor speed = 10rpm
 }
 ```
 
-USART1 (HC-06) and USART2 (ST-Link) are initialized at 9600 bps. USART2 is kept only for `printf()` debugging, because `printf()` is retargeted to USART2 and would wait forever for TXE if USART2 were not initialized (see Troubleshooting 16). LD2 is set as output, and the stepper motor is initialized in full-step mode with `stepper_speed(10)`.
+USART1 (HC-06) is initialized at 9600 bps. USART2 is not initialized, because it is not used in this program (see Discussion 4). LD2 is set as output, and the stepper motor is initialized in full-step mode with `stepper_speed(10, FULLSTEP_PER_REV)`.
 
 
 
@@ -767,9 +767,9 @@ The motor is rotated `FULLSTEP_PER_REV × 2 = 4096` steps (2 revolutions) per co
 ```c
 void USART1_IRQHandler(){          	// USART1 Interrupt - when receiving string from the other
 	if(is_USART1_RXNE()){
-		BT_Data = USART1_read();		// RX from other MCU UART1
+		BT_Data = USART1_read();		// RX from HC-06
 
-        USART1_write(&BT_Data,1);		// TX to USART1	 (my PC)	 Echo of keyboard typing
+        USART1_write(&BT_Data,1);		// TX to HC-06
         if(BT_Data == END_CHAR){
             USART1_write(&newline, 1);      // not for the prev line to be overwritten
         }
@@ -822,6 +822,21 @@ void stepper_stop(void){
 
 The previous `stepper_stop()` was a pause/resume toggle (`pause_flag ^= 1`). It was separated into `stepper_pause()` (toggle) and `stepper_stop()` (end the motion). The new `stepper_stop()` sets the remaining step count `_steps` to 0. Since `_steps` is `volatile`, the loop condition `i < _steps` in `stepper_step()` reads the new value and the loop ends at the next check. All coil outputs are set to LOW.
 
+**Parameters**
+
+- None
+
+**Example code**
+
+```c
+void EXTI15_10_IRQHandler(void) {  
+	if (is_pending_EXTI(BUTTON_PIN)) {
+		stepper_stop();                     // abort rotation, all coils off
+		clear_pending_EXTI(BUTTON_PIN);
+	}
+}
+```
+
 
 
 ### Result
@@ -858,7 +873,7 @@ Experiment images and results
 >
 > - "P" stopped the motor immediately during rotation, and the motor did not restart by a command that was entered before "P".
 >
-> - With `stepper_speed(10)` in full-step mode, the step period is calculated with integer division:
+> - With `stepper_speed(10, FULLSTEP_PER_REV)` in full-step mode, the step period is calculated with integer division:
 >   $$
 >   \text{_step_delay} = \left\lfloor \frac{60000}{2048 \times 10} \right\rfloor = \lfloor 2.93 \rfloor = 2\ \text{ms}
 >   $$
@@ -884,7 +899,7 @@ Demo video link [Problem 2 video](https://youtu.be/0kP_j8nmzCQ)
 
 3. **Emergency stop must also cancel pending commands** If 'K' is typed during CW rotation and then 'P' is pressed, the CW motion stops, but `ccw_flag` is still 1. Then the motor starts rotating CCW right after the emergency stop. To prevent this, `'P'` clears both `cw_flag` and `ccw_flag` in addition to `stepper_stop()`.
 
-4. **Unused USART2 RX interrupt** USART2 is initialized only for `printf()` debugging, but `USART_init()` also enables its RXNE interrupt. Since `USART2_IRQHandler()` is not defined in this program, typing a key in the ST-Link terminal would jump to the default handler (infinite loop). In this lab only the Bluetooth terminal was used, so it was not a problem, but disabling `RXNEIE` for USART2 or adding an empty handler would be safer.
+4. **Removing the unused USART2 to prevent an unhandled interrupt** In an earlier version, USART2 was initialized only for `printf()` debugging. However, `USART_init()` always enables the RXNE interrupt (`RXNEIE`) and the NVIC line. Since `USART2_IRQHandler()` was not defined in this program, the weak alias in the startup file linked it to `Default_Handler`, which is an infinite loop. Therefore, typing a single key in the ST-Link terminal would freeze the MCU, and both the motor and the Bluetooth commands would stop responding. Since USART2 is not used at all in Problem 2 (all communication goes through USART1), `USART_init(USART2, ...)` was removed. Now the USART2 interrupt can never occur, so no handler is needed. As a trade-off, `printf()` must not be used in this program, because it is retargeted to USART2 and would wait forever for the TXE flag of an uninitialized USART.
 
 
 
@@ -921,7 +936,7 @@ Demo video link [Problem 2 video](https://youtu.be/0kP_j8nmzCQ)
 
 - **Problem** : The LED did not change when the received string was compared with `strcmp('L', BT_string)`.
 - **Cause** : `'L'` is a character constant (integer 76), while `"L"` is a string literal (address of `{'L', '\0'}`). `strcmp()` takes two addresses, so `'L'` was treated as memory address `0x4C`.
-- **Solution** : `"L"` was used. In the final version, the LED is controlled at character level in the ISR, so `strcmp()` is no longer needed (see Problem 1 Discussion 5).
+- **Solution** : `"L"` was used. In the final version, the LED is controlled at character level in the ISR, so `strcmp()` is no longer needed (see Problem 1 Discussion 4).
 
 **5. Emergency stop did not work**
 

@@ -8,7 +8,7 @@ Language/ver     : C++ in VS Code
 Description      : USART1, 2 IRQ Handler
                  : Toggling LED by pressing "L(off)" and "H(on)"
 /----------------------------------------------------------------*/
-
+#include <string.h>
 #include "ecSTM32F4v2.h"
 
 #define 	LED2  		PA_5

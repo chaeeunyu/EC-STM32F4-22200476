@@ -18,7 +18,7 @@ static volatile uint32_t _steps;
 static volatile uint32_t _step_delay = 100;		
 static const StateStepper_t *fsm;		// points at fsm_full or fsm_half (chosen in stepper_init)
 static volatile uint32_t state = 0;		// current FSM state
-volatile int pause_flag = 0;
+static volatile int pause_flag = 0;
 
 
 
@@ -59,13 +59,13 @@ void stepper_init(uint32_t mode, PinName_t *pinStepper){
 		stepperPins[i] = pinStepper[i];
 		GPIO_init(stepperPins[i], OUTPUT);
 	}
-	FND_select_ospeed(stepperPins, FASTSPEED);
+	GPIO_ospeed_arr(stepperPins, 4, FASTSPEED);
 }
 
 // Converts Motor [rpm] to step delay in [msec]
 // speed -> by adjusting the step period(=_step_delay)
-void stepper_speed (uint32_t speedRPM){      // rpm
-		_step_delay = 60*1000/(FULLSTEP_PER_REV*speedRPM); 		//in [msec] ---------> MODIFY!!(HALF/FULL)	
+void stepper_speed (uint32_t speedRPM, uint32_t step_per_Rev){      // rpm
+		_step_delay = 60*1000/(step_per_Rev*speedRPM); 		//in [msec] 
 		// [usec] can be used for a higher accuracy
 		// But needs delay_us() 
 }
@@ -79,7 +79,7 @@ void stepper_step(uint32_t steps, uint32_t direction){
 
 	// run for step size: 
 	for (uint32_t i = 0; i < _steps; i++){
-		while(pause_flag == 1) {;}
+		while(pause_flag == 1) {;}  	// pause_flag: (resume=0, pause=1)
 		// Update Present State
 		state = fsm[state].next[direction];
 		

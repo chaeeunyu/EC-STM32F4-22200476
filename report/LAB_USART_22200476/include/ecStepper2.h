@@ -82,13 +82,14 @@ void stepper_init(uint32_t mode, PinName_t *pinStepper);
 
 /**
  * @brief  Set the motor speed by converting [rpm] to the step period [ms].
- * @param[in] speedRPM  Motor speed [rpm]
+ * @param[in] speedRPM      Motor speed [rpm]
+ * @param[in] step_per_rev  # of steps per revolution
  * @par Example
  * @code
- * stepper_speed(5);    // 5 rpm -> _step_delay = 60000/(4096*5) = 2 ms (half-stepping)
+ * stepper_speed(5, FULLSTEP_PER_REV);    // 5 rpm -> _step_delay = 60000/(2048*5) = 5 ms (full-stepping)
  * @endcode
  */
-void stepper_speed (uint32_t speedRPM);
+void stepper_speed (uint32_t speedRPM, uint32_t step_per_rev);
 
 /**
  * @brief  Rotate the motor for a given number of steps (blocking).
@@ -116,9 +117,8 @@ void stepper_step(uint32_t steps, uint32_t direction);
 void stepper_out(uint32_t state);
 
 /**
- * @brief  Toggle pause/resume of the running stepper_step().
- * @note   Despite the name, it does not stop the motor permanently.
- *         Each call toggles the pause state. Typically called from an EXTI handler (button).
+ * @brief   Toggle pause/resume of the running stepper_step().
+ * @note    Each call toggles the pause state. Typically called from an EXTI handler (button).
   * @par Example
  * @code
  * void EXTI15_10_IRQHandler(void) {  

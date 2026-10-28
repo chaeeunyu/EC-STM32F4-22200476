@@ -1,9 +1,18 @@
+/*----------------------------------------------------------------\
+@ Embedded Controller by Young-Keun Kim - Handong Global University
+Author           : Yu Chaeeun
+Created          : 05-03-2021
+Modified         : Oct-15-2026
+Language/ver     : C++ in VS Code
+
+Description      : Stepper Motor
+				   Rotating the stepper motor (DIR: CW / CCW)
+				   Pausing & resuming the motor by pressing the button(PC_13)
+/----------------------------------------------------------------*/
+
+
 #include "stm32f411xe.h"
-#include "ecGPIO2.h"
-#include "ecRCC2.h"
-#include "ecEXTI2.h"
-#include "ecSysTick2.h"
-#include "ecStepper2.h"
+#include "ecSTM32F4v2.h"
 
 // ( A, B,  AN,  BN)
 PinName_t pinStepper[4]    = {PB_10,PB_4,PB_5,PB_3};
@@ -19,8 +28,8 @@ void setup(void){
 	GPIO_pupd(BUTTON_PIN, PULL_UP);
     EXTI_init(BUTTON_PIN, FALL, 10);           		// External Interrupt Setting
 
-	stepper_init(FULL, pinStepper); 				// Stepper GPIO pin initialization
-	stepper_speed(5);                          		//  set stepper motor speed, 5 rpm
+	stepper_init(FULL, pinStepper); 				// Stepper GPIO pin initialization  <------------------- MODIFY(FULL/HALF)
+	stepper_speed(5, FULLSTEP_PER_REV);             //  set stepper motor speed, 5 rpm  <------------------- MODIFY(FULL/HALF)
 }
 
 
@@ -28,7 +37,7 @@ int main(void) {
 	// Initialiization --------------------------------------------------------
 	setup();
 	uint32_t rev=1;
-	uint32_t steps=FULLSTEP_PER_REV*rev;
+	uint32_t steps=FULLSTEP_PER_REV*rev;                       //     <------------------------------------ MODIFY(FULL/HALF)
 	
 	// Inifinite Loop ----------------------------------------------------------
 	while(1){

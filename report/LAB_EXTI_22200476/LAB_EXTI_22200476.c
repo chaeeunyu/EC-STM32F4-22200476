@@ -15,7 +15,10 @@ Description      : [LAB] EXTI: counting numbers at a rate of 1s
 // #include "ecGPIO2.h"
 // #include "ecSysTick2.h"
 // #include "ecEXTI2.h"
+// #include "ecPinNames.h"
 #include "ecSTM32F4v2.h"
+
+#define ARRAY_LEN(a)  (sizeof(a) / sizeof((a)[0]))
 
 #define SW1_PIN    PD_2         //EVAL board JKIT SW1
 #define SW2_PIN    PA_4			//EVAL board JKIT SW2
@@ -39,7 +42,8 @@ void pause_led(void){
 // Initialiization 
 void setup(void)
 {
-    MCU_init();
+    RCC_PLL_init();    // CLOCK PLL 84MHz
+    SysTick_init();    // SysTick 1msec
 
     // Initialize GPIOA_4 for Input Button
     GPIO_init(SW1_PIN, INPUT);  // SW1: DIN, Pull-Up
@@ -48,12 +52,12 @@ void setup(void)
     GPIO_pupd(SW2_PIN, PULL_UP); 
 
     FND_init(pinFND);           // 7-segment pins: Push-Pull, No Pull-up-Pull-down, Medium Speed
-    FND_select_otype(pinFND, PUSH_PULL);
-    FND_select_pupd(pinFND, NPUPD);
-    FND_select_ospeed(pinFND, MEDSPEED);
+    GPIO_otype_arr(pinFND, ARRAY_LEN(pinFND), PUSH_PULL);
+    GPIO_pupd_arr(pinFND, ARRAY_LEN(pinFND), NPUPD);
+    GPIO_ospeed_arr(pinFND, ARRAY_LEN(pinFND), MEDSPEED);
 
     FND_select_init(selectFND);           // select display: DOUT, Push-Pull
-    FND_select_otype(selectFND, PUSH_PULL);
+    GPIO_otype_arr(selectFND, ARRAY_LEN(selectFND), PUSH_PULL);
 
 
     // Initialize EXTI PD_2 & PA_4

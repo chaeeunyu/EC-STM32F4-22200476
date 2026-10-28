@@ -1,16 +1,16 @@
 # LAB: Stepper Motor
 
-## LAB: Stepper Motor
-
 **Date:** 2026-Oct-12
 
-**Author:** 유채은
+**Author:** Yu Chaeeun
+
+**GitHub repository :** [GitHub Link](https://github.com/chaeeunyu/EC-STM32F4-22200476.git)
 
 **Demo Video:** [demo video link](https://youtu.be/ZtiYtSjokvo)
 
 ​				 	    [demo video link - pause EXTI w/ button B1](https://youtu.be/55WukKRUPAA)
 
-**PDF version:** [LAB_Stepper_Motor_22200476.pdf](LAB_Stepper_Motor_22200476.pdf)
+**PDF version:** [LAB_Stepper_Motor_22200476_YuChaeeun.pdf](LAB_Stepper_Motor_22200476_YuChaeeun.pdf)
 
 ## Introduction
 
@@ -47,7 +47,7 @@ For this lab, I used a stepper motor driver that requires a sequence of 4-input 
 
 * **Driver:** **ULN2003 motor driver.**[ULN2003 spec sheet](https://www.electronicoscaldas.com/datasheet/ULN2003A-PCB.pdf)
 
-* **Motor:** 28BYJ-48, Search for the spec sheet
+* **Motor:** **28BYJ-48** (5V, unipolar, gear ratio 1/64)
 
   <figure align="center">
       <img src="./img/unipolar_stepper_motor_28BYJ-48.png" width=80%>
@@ -162,7 +162,7 @@ static volatile uint32_t _steps;
 static volatile uint32_t _step_delay = 100;		
 static const StateStepper_t *fsm;		// points at fsm_full or fsm_half (chosen in stepper_init)
 static volatile uint32_t state = 0;		// current FSM state
-volatile int pause_flag = 0;
+static volatile int pause_flag = 0;
 
 // Output: A B A' B'
 static const StateStepper_t fsm_Full[4] = {	
@@ -212,7 +212,7 @@ void stepper_init(uint32_t mode, PinName_t *pinStepper){
 		stepperPins[i] = pinStepper[i];
 		GPIO_init(stepperPins[i], OUTPUT);
 	}
-	FND_select_ospeed(stepperPins, FASTSPEED);
+	GPIO_ospeed_arr(stepperPins, 4, FASTSPEED);
 }
 ```
 
@@ -235,8 +235,8 @@ stepper_init(HALF, pinStepper);    // half-stepping mode
 Converts the motor speed in [rpm] to the delay between steps in [msec].
 
 ```c
-void stepper_speed (uint32_t speedRPM){      // rpm
-		_step_delay = 60*1000/(HALFSTEP_PER_REV*speedRPM); 		//in [msec]	
+void stepper_speed (uint32_t speedRPM, uint32_t step_per_Rev){      // rpm
+		_step_delay = 60*1000/(step_per_Rev*speedRPM); 		//in [msec]	
 		// [usec] can be used for a higher accuracy
 		// But needs delay_us() 
 }
@@ -250,12 +250,13 @@ The step delay is derived from the units:
 $$
 \text{_step_delay}\ [\text{ms/step}] = \frac{60 \times 1000\ [\text{ms/min}]}{N_{step/rev}\ [\text{step/rev}] \times \text{speedRPM}\ [\text{rev/min}]}
 $$
-N_(step/rev) must match the stepping mode: `FULLSTEP_PER_REV` (2048) for full-stepping and `HALFSTEP_PER_REV` (4096) for half-stepping. The code above is the half-stepping version. Since all operands are integers, the decimal part of the result is truncated.
+N_(step/rev) must match the stepping mode: `FULLSTEP_PER_REV` (2048) for full-stepping and `HALFSTEP_PER_REV` (4096) for half-stepping. Since all operands are integers, the decimal part of the result is truncated.
 
 **Example code**
 
 ```c
-stepper_speed(5);    // 5 rpm -> _step_delay = 60000/(4096*5) = 2 ms (half-stepping)
+stepper_speed(5, FULLSTEP_PER_REV);    // 5 rpm -> _step_delay = 60000/(2048*5) = 5 ms (full-stepping)
+stepper_speed(5, HALFSTEP_PER_REV);    // 5 rpm -> _step_delay = 60000/(4096*5) = 2 ms (half-stepping)
 ```
 
 ------
@@ -297,7 +298,7 @@ The next state is selected by the present state and the direction (`fsm[state].n
 
 ```c
 stepper_step(HALFSTEP_PER_REV*5, DIR_CW);    // 5 revolutions, CW (half-stepping)
-stepper_step(STEP_PER_REV*5, DIR_CCW);       // 5 revolutions, CCW (full-stepping)
+stepper_step(FULLSTEP_PER_REV*5, DIR_CCW);       // 5 revolutions, CCW (full-stepping)
 ```
 
 ------
@@ -333,18 +334,14 @@ stepper_out(S1);    // full-stepping: A=LOW, B=HIGH, A'=HIGH, B'=LOW
 
 ------
 
-#### stepper_stop()
+#### stepper_pause()
 
-Toggles the pause state of the motor (pause ↔ resume).
+Toggles the pause state of the motor (pause ↔ resume). This is an additional function that is not in the guideline.
 
 ```c
-void stepper_stop(void) {
-    // _steps = 0;    
+// pause Stepper Motor
+void stepper_pause(void) {
     
-	// // All pins DigitalOut '0'
-	// for(uint32_t i=0; i<4; i++){
-	// 	GPIO_write(stepperPins[i], LOW);
-	// }
 	pause_flag ^= 1;
 }
 ```
@@ -353,14 +350,49 @@ void stepper_stop(void) {
 
 - None
 
-The original version (commented out) aborted the rotation by setting `_steps = 0` and turned off all coils. I changed it to toggle `pause_flag` with XOR so that pressing the button once pauses the motor and pressing it again resumes from the same step.
+Each call toggles `pause_flag` with XOR. While `pause_flag` is 1, `stepper_step()` waits at the `while` statement, so the motor pauses and holds its position. Pressing the button again resumes from the same step.
+
+**Example code**
+
+```C
+void EXTI15_10_IRQHandler(void) {  
+	if (is_pending_EXTI(BUTTON_PIN)) {
+		stepper_pause();                     // pause or resume
+		clear_pending_EXTI(BUTTON_PIN);
+	}
+}
+```
+
+------
+
+#### stepper_stop()
+
+Stops the motor permanently by aborting the current 'stepper_step()' and setting all coil outputs LOW (guideline ver.)
+
+```C
+// permanently stop motor
+void stepper_stop(void){
+	_steps = 0;    
+    
+	// All pins DigitalOut '0'
+	for(uint32_t i=0; i<4; i++){
+		GPIO_write(stepperPins[i], LOW);
+	}
+}
+```
+
+**Parameters**
+
+- None
+
+Setting `_steps = 0` makes the loop condition `i < _steps` false, so `stepper_step()` returns after the current step. All coils are turned off, so there is no holding torque.
 
 **Example code**
 
 ```c
 void EXTI15_10_IRQHandler(void) {  
 	if (is_pending_EXTI(BUTTON_PIN)) {
-		stepper_stop();                     // pause or resume
+		stepper_stop();                     // abort rotation, all coils off
 		clear_pending_EXTI(BUTTON_PIN);
 	}
 }
@@ -372,7 +404,7 @@ void EXTI15_10_IRQHandler(void) {
 
 #### Code
 
-Source code: [github link](https://github.com/chaeeunyu/EC-STM32F4-22200476/blob/main/lab/LAB_Stepper_Motor_22200476.c)
+Source code: [github source code link](https://github.com/chaeeunyu/EC-STM32F4-22200476/blob/main/lab/LAB_Stepper_Motor_22200476.c)
 
 The main source code `LAB_Stepper_Motor_22200476.c` is explained below.
 
@@ -382,11 +414,7 @@ Pin assignment of the stepper motor and the user button.
 
 ```c
 #include "stm32f411xe.h"
-#include "ecGPIO2.h"
-#include "ecRCC2.h"
-#include "ecEXTI2.h"
-#include "ecSysTick2.h"
-#include "ecStepper2.h"
+#include "ecSTM32F4v2.h"
 
 // ( A, B,  AN,  BN)
 PinName_t pinStepper[4]    = {PB_10,PB_4,PB_5,PB_3};
@@ -411,8 +439,8 @@ void setup(void){
 	GPIO_pupd(BUTTON_PIN, PULL_UP);
     EXTI_init(BUTTON_PIN, FALL, 10);           		// External Interrupt Setting
 
-	stepper_init(HALF, pinStepper); 				// Stepper GPIO pin initialization
-	stepper_speed(5);                          		//  set stepper motor speed, 5 rpm
+	stepper_init(FULL, pinStepper); 				// Stepper GPIO pin initialization  <------------------- MODIFY(FULL/HALF)
+	stepper_speed(5, FULLSTEP_PER_REV);             //  set stepper motor speed, 5 rpm  <------------------- MODIFY(FULL/HALF)
 }
 ```
 
@@ -425,7 +453,7 @@ void setup(void){
 ```c
 // Full-stepping at 1 rpm
 stepper_init(FULL, pinStepper);
-stepper_speed(1);
+stepper_speed(1, FULLSTEP_PER_REV);
 ```
 
 The button is configured as a pull-up input and triggers EXTI on the falling edge (button pressed) with priority 10. The stepping mode and the speed were changed here for each experiment.
@@ -441,7 +469,7 @@ int main(void) {
 	// Initialiization --------------------------------------------------------
 	setup();
 	uint32_t rev=1;
-	uint32_t steps=HALFSTEP_PER_REV*rev;
+	uint32_t steps=FULLSTEP_PER_REV*rev;      //     <----------------------------- MODIFY(FULL/HALF)
 	
 	// Inifinite Loop ----------------------------------------------------------
 	while(1){
@@ -453,26 +481,7 @@ int main(void) {
 }
 ```
 
-**Parameters**
-
-- **rev**: number of revolutions per call of `stepper_step()`
-- **steps**: total number of steps = steps per revolution × `rev`
-
-**Example code**
-
-```c
-// 5 revolutions CW, then 5 revolutions CCW (full-stepping)
-uint32_t rev = 5;
-uint32_t steps = STEP_PER_REV*rev;
-while(1){
-	stepper_step(steps, DIR_CW);
-	delay_ms(2000);
-	stepper_step(steps, DIR_CCW);
-	delay_ms(2000);
-}
-```
-
-The number of steps per revolution must match the mode set in `setup()` (`HALFSTEP_PER_REV` for `HALF`, `STEP_PER_REV` for `FULL`). For the speed measurement, the motor rotated one revolution repeatedly in one direction so that the time per revolution could be measured from the video. The commented lines are used to rotate in the opposite direction.
+The number of steps per revolution must match the mode set in `setup()` (`HALFSTEP_PER_REV` for `HALF`, `FULLSTEP_PER_REV` for `FULL`). For the speed measurement, the motor rotated one revolution repeatedly in one direction so that the time per revolution could be measured from the video.
 
 ------
 
@@ -483,7 +492,7 @@ Pauses or resumes the motor when the user button is pressed.
 ```c
 void EXTI15_10_IRQHandler(void) {  
 	if (is_pending_EXTI(BUTTON_PIN)) {
-		stepper_stop();
+		stepper_pause();
 		clear_pending_EXTI(BUTTON_PIN); // cleared by writing '1'
 	}
 }
@@ -619,8 +628,8 @@ Video link : [demo video link](https://youtu.be/ZtiYtSjokvo)
 
 **3. Pause and resume with the user button**
 
-- **Problem**: I wanted the motor to stop when the button is pressed and to continue when it is pressed again, but the original `stepper_stop()` sets `_steps = 0`, which ends the loop (abort) and loses the remaining steps.
+- **Problem**: I wanted the motor to stop when the button is pressed and to continue when it is pressed again, but the guideline's `stepper_stop()` sets `_steps = 0`, which ends the loop (abort) and loses the remaining steps.
 - Cause / Trials:
   - Putting `if(pause_flag == 0){ ... }` inside the loop: the step update was skipped during pause, but `i++` still ran, so the loop ended quickly.
   - Putting `if(pause_flag == 0)` outside the loop: the flag was checked only once when the function started, so the motor could not be paused during rotation.
-- **Solution**: Added `while(pause_flag == 1) {;}` at the beginning of each loop iteration. During pause, neither `i` nor `state` changes, and the last coil output is held (holding torque). `stepper_stop()` was changed to toggle the flag (`pause_flag ^= 1`). Since `pause_flag` is changed in the ISR and read in the loop, it was declared `volatile`; otherwise the compiler may read it only once and the motor would never resume.
+- **Solution**: Added `while(pause_flag == 1) {;}` at the beginning of each loop iteration. During pause, neither `i` nor `state` changes, and the last coil output is held (holding torque). I added a separate function `stepper_pause()` that toggles the flag (`pause_flag ^= 1`), and kept `stepper_stop()` as the guideline version. Since `pause_flag` is changed in the ISR and read in the loop, it was declared `volatile`; otherwise the compiler may read it only once and the motor would never resume.

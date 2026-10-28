@@ -19,8 +19,8 @@ static uint8_t   newline = '\n';
 
 // ---------------------------- Pin Configuration ----------------------------
 // USART2: ST-Link Virtual COM Port (connected to PC via USB, used by printf)
-PinName_t pin_GPIO_TX2 = PA_2;
-PinName_t pin_GPIO_RX2 = PA_3;
+// PinName_t pin_GPIO_TX2 = PA_2;
+// PinName_t pin_GPIO_RX2 = PA_3;
 // USART1: connected to Bluetooth module (MCU TX -> BT RX, MCU RX -> BT TX)
 PinName_t pin_GPIO_TX1 = PA_9;
 PinName_t pin_GPIO_RX1 = PA_10;
@@ -39,7 +39,7 @@ void setup(void){
 	SysTick_init();     // Initialize SysTick timer (used for step timing / delay)
 
     // USART2: USB serial init (for printf debugging to PC)
-	USART_init(USART2, pin_GPIO_TX2, pin_GPIO_RX2, BAUD_9600);  
+	//USART_init(USART2, pin_GPIO_TX2, pin_GPIO_RX2, BAUD_9600);  
 	
 	// USART1: Bluetooth module serial init
 	// Baud rate must match the BT module setting
@@ -49,7 +49,7 @@ void setup(void){
     GPIO_init(LED2, OUTPUT);
     // initialize stepper motor in full-step mode with the 4 phase pins
     stepper_init(FULL, pinStepper); 
-    stepper_speed(10);   // motor speed = 10rpm
+    stepper_speed(10, FULLSTEP_PER_REV);   // motor speed = 10rpm
 }
 
 // ---------------------------- Main ----------------------------
@@ -78,9 +78,9 @@ int main(void){
 
 void USART1_IRQHandler(){          	// USART1 Interrupt - when receiving string from the other
 	if(is_USART1_RXNE()){
-		BT_Data = USART1_read();		// RX from other MCU UART1
+		BT_Data = USART1_read();		// RX from HC-06
 
-        USART1_write(&BT_Data,1);		// TX to USART1	 (my PC)	 Echo of keyboard typing
+        USART1_write(&BT_Data,1);		// TX to HC-06	 
         if(BT_Data == END_CHAR){
             USART1_write(&newline, 1);      // not for the prev line to be overwritten
         }

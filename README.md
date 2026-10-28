@@ -479,9 +479,9 @@ Initialize GPIO pins and configure mode, speed, output type, pull-up/down, and r
 | `void` | [`FND_select_init`](#fnd_select_init)  | Initialize the digit-select pins as outputs. |
 | `void` | [`FND_display`](#fnd_display)  | Display a number on the currently selected digit. |
 | `void` | [`FND_select`](#fnd_select)  | Select which digit of the display is active. |
-| `void` | [`FND_select_pupd`](#fnd_select_pupd)  | Set pull-up/pull-down for all digit-select pins. |
-| `void` | [`FND_select_otype`](#fnd_select_otype)  | Set output type for all digit-select pins. |
-| `void` | [`FND_select_ospeed`](#fnd_select_ospeed)  | Set output speed for all digit-select pins. |
+| `void` | [`GPIO_pupd_arr`](#gpio_pupd_arr)  | Set pull-up/pull-down for array pins. |
+| `void` | [`GPIO_otype_arr`](#gpio_otype_arr)  | Set output type for array pins. |
+| `void` | [`GPIO_ospeed_arr`](#gpio_ospeed_arr)  | Set output speed for array pins. |
 
 ---
 
@@ -904,101 +904,116 @@ FND_select(selectFND2);
 
 ---
 
-<a id="fnd_select_pupd"></a>
+<a id="gpio_pupd_arr"></a>
 
-### FND_select_pupd
+### GPIO_pupd_arr
 
 ```c
-void FND_select_pupd(PinName_t *selectFND, uint32_t pupd){
-	for(int i=0; i<4; i++){
-		GPIO_pupd(_fndSel[i], pupd);
+void GPIO_pupd_arr(PinName_t *pinArr, int n, uint32_t pupd){
+	for(int i=0; i<n; i++){
+		GPIO_pupd(pinArr[i], pupd);
 	}
 }
 ```
 
-Defined in include/ecGPIO2.h:213
+Defined in include/ecGPIO2.h:215
 
-Set pull-up/pull-down for all digit-select pins.
+Set pull-up/pull-down for array pins.
+
+> [!NOTE]
+> GPIO_*_init() must be called first.
+
 
 #### Example
 
 ```cpp
 PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
 FND_select_init(pinsSel);
-FND_select_pupd(pinsSel, NPUPD);
+GPIO_pupd_arr(pinsSel, 4, NPUPD);
 ```
 
 #### Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `selectFND` | [`PinName_t`](api-PinNames.md#pinname_t) * | Array of digit-select pins |
+| `pinArr` | [`PinName_t`](api-PinNames.md#pinname_t) * | Array of pins (as a pointer) |
+| `n` | `int` | The size of the array (# of elements) |
 | `pupd` | `uint32_t` | NPUPD, PULL_UP, or PULL_DOWN |
 
 ---
 
-<a id="fnd_select_otype"></a>
+<a id="gpio_otype_arr"></a>
 
-### FND_select_otype
+### GPIO_otype_arr
 
 ```c
-void FND_select_otype(PinName_t *selectFND, uint32_t otype){
-	for(int i=0; i<4; i++){
-		GPIO_otype(_fndSel[i], otype);
+void GPIO_otype_arr(PinName_t *pinArr, int n, uint32_t otype){
+	for(int i=0; i<n; i++){
+		GPIO_otype(pinArr[i], otype);
 	}
 }
 ```
 
-Defined in include/ecGPIO2.h:226
+Defined in include/ecGPIO2.h:230
 
-Set output type for all digit-select pins.
+Set output type for array pins.
+
+> [!NOTE]
+> GPIO_*_init() must be called first.
+
 
 #### Example
 
 ```cpp
 PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
 FND_select_init(pinsSel);
-FND_select_otype(pinsSel, PUSH_PULL);
+GPIO_otype_arr(pinsSel, 4, PUSH_PULL);
 ```
 
 #### Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `selectFND` | [`PinName_t`](api-PinNames.md#pinname_t) * | Array of digit-select pins |
+| `pinArr` | [`PinName_t`](api-PinNames.md#pinname_t) * | Array of pins (as a pointer) |
+| `n` | `int` | The size of the array (# of elements) |
 | `otype` | `uint32_t` | PUSH_PULL or OPEN_DRAIN |
 
 ---
 
-<a id="fnd_select_ospeed"></a>
+<a id="gpio_ospeed_arr"></a>
 
-### FND_select_ospeed
+### GPIO_ospeed_arr
 
 ```c
-void FND_select_ospeed(PinName_t *selectFND, uint32_t ospeed){
-	for(int i=0; i<4; i++){
-		GPIO_ospeed(_fndSel[i], ospeed);
+void GPIO_ospeed_arr(PinName_t *pinArr, int n, uint32_t ospeed){
+	for(int i=0; i<n; i++){
+		GPIO_ospeed(pinArr[i], ospeed);
 	}
 }
 ```
 
-Defined in include/ecGPIO2.h:239
+Defined in include/ecGPIO2.h:245
 
-Set output speed for all digit-select pins.
+Set output speed for array pins.
+
+> [!NOTE]
+> GPIO_*_init() must be called first.
+
 
 #### Example
 
 ```cpp
 PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
 FND_select_init(pinsSel);
-FND_select_ospeed(pinsSel, MEDSPEED);
+GPIO_ospeed_arr(pinsSel, 4, MEDSPEED);
 ```
 
 #### Parameters
 
 | Parameter | Type | Description |
 |-----------|------|-------------|
-| `selectFND` | [`PinName_t`](api-PinNames.md#pinname_t) * | Array of digit-select pins |
+| `pinArr` | [`PinName_t`](api-PinNames.md#pinname_t) * | Array of pins (as a pointer) |
+| `n` | `int` | The size of the array (# of elements) |
 | `ospeed` | `uint32_t` | LOWSPEED, MEDSPEED, FASTSPEED, or HIGHSPEED |
 
 ## Variables
@@ -1723,7 +1738,7 @@ void stepper_init(uint32_t mode, PinName_t *pinStepper){
 		stepperPins[i] = pinStepper[i];
 		GPIO_init(stepperPins[i], OUTPUT);
 	}
-	FND_select_ospeed(stepperPins, FASTSPEED);
+	GPIO_ospeed_arr(stepperPins, 4, FASTSPEED);
 }
 ```
 
@@ -1756,21 +1771,21 @@ stepper_init(HALF, pinStepper);    // half-stepping mode
 ### stepper_speed
 
 ```c
-void stepper_speed (uint32_t speedRPM){      // rpm
-		_step_delay = 60*1000/(FULLSTEP_PER_REV*speedRPM); 		//in [msec] ---------> MODIFY!!(HALF/FULL)	
+void stepper_speed (uint32_t speedRPM, uint32_t step_per_Rev){      // rpm
+		_step_delay = 60*1000/(step_per_Rev*speedRPM); 		//in [msec] 
 		// [usec] can be used for a higher accuracy
 		// But needs delay_us() 
 }
 ```
 
-Defined in include/ecStepper2.h:91
+Defined in include/ecStepper2.h:92
 
 Set the motor speed by converting [rpm] to the step period [ms].
 
 #### Example
 
 ```cpp
-stepper_speed(5);    // 5 rpm -> _step_delay = 60000/(4096*5) = 2 ms (half-stepping)
+stepper_speed(5, FULLSTEP_PER_REV);    // 5 rpm -> _step_delay = 60000/(2048*5) = 5 ms (full-stepping)
 ```
 
 #### Parameters
@@ -1778,6 +1793,7 @@ stepper_speed(5);    // 5 rpm -> _step_delay = 60000/(4096*5) = 2 ms (half-stepp
 | Parameter | Type | Description |
 |-----------|------|-------------|
 | `speedRPM` | `uint32_t` | Motor speed [rpm] |
+| `step_per_rev` | `uint32_t` | # of steps per revolution |
 
 ---
 
@@ -1793,7 +1809,7 @@ void stepper_step(uint32_t steps, uint32_t direction){
 
 	// run for step size: 
 	for (uint32_t i = 0; i < _steps; i++){
-		while(pause_flag == 1) {;}
+		while(pause_flag == 1) {;}  	// pause_flag: (resume=0, pause=1)
 		// Update Present State
 		state = fsm[state].next[direction];
 		
@@ -1807,7 +1823,7 @@ void stepper_step(uint32_t steps, uint32_t direction){
 }
 ```
 
-Defined in include/ecStepper2.h:105
+Defined in include/ecStepper2.h:106
 
 Rotate the motor for a given number of steps (blocking).
 
@@ -1848,7 +1864,7 @@ void stepper_out(uint32_t state){
 }
 ```
 
-Defined in include/ecStepper2.h:116
+Defined in include/ecStepper2.h:117
 
 Write the coil output pattern of an FSM state to the motor pins.
 
@@ -1886,7 +1902,7 @@ Defined in include/ecStepper2.h:132
 Toggle pause/resume of the running [stepper_step()](#stepper_step).
 
 > [!NOTE]
-> Despite the name, it does not stop the motor permanently. Each call toggles the pause state. Typically called from an EXTI handler (button).
+> Each call toggles the pause state. Typically called from an EXTI handler (button).
 
 
 #### Example

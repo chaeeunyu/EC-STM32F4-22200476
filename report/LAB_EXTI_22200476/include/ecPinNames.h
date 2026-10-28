@@ -1,3 +1,13 @@
+/**
+ * @file    ecPinNames.h
+ * @brief   Pin name definitions and pin-to-port mapping for STM32F411 (Nucleo-F411RE).
+ *
+ * Embedded Controller by Young-Keun Kim - Handong Global University
+ *
+ * @author  Yu Chaeeun
+ * @note    Language: C (VS Code, PlatformIO)
+ */
+
 
 #ifndef EC_PINNAMES_H
 #define EC_PINNAMES_H
@@ -10,15 +20,23 @@ extern "C" {
 
 
 // Bitwise Macro Definition ---------------------> not being used
-#define BIT_SET(REG, BIT)      	((REG) |= 1<< (BIT))
-#define BIT_CLEAR(REG, BIT)     ((REG) &= ~1<<(BIT))
-#define BIT_READ(REG, BIT)      ((REG)>>BIT & (1))
-#define BITS_SET(REG, BIT,NUM)     ((REG) |= NUM<< (BIT))
-#define BITS_CLEAR(REG, BIT,NUM)   ((REG) &= ~(NUM<< (BIT))
+// #define BIT_SET(REG, BIT)      	((REG) |= 1<< (BIT))
+// #define BIT_CLEAR(REG, BIT)     ((REG) &= ~1<<(BIT))
+// #define BIT_READ(REG, BIT)      ((REG)>>BIT & (1))
+// #define BITS_SET(REG, BIT,NUM)     ((REG) |= NUM<< (BIT))
+// #define BITS_CLEAR(REG, BIT,NUM)   ((REG) &= ~(NUM<< (BIT))
 //#define BITS_CLEAR(REG, BIT,NUM)   ((REG) &= ~((0x1<< NUM)-1)<<(BIT))
 
 
-// Pinname Config
+/**
+ * @defgroup PinNames Pin Names
+ * @brief    Pin name types used by all EC library functions, and conversion
+ *           from a pin name to its GPIO port and pin number.
+ * @{
+ */
+
+
+ /** GPIO port index. Used as the upper nibble of PinName_t. */
 typedef enum {
     PortA = 0,
     PortB = 1,
@@ -34,7 +52,12 @@ typedef enum {
 } PortName_t;
 
 
-
+/**
+ * Pin name. Encoded as 0xXY: X = port index (PortName_t), Y = pin number (0~15).
+ * For example, PC_13 = 0x2D (port C = 2, pin 13 = 0xD).
+ * Arduino connector names (A0~A5, D0~D15) are aliases of the matching pins.
+ * NC means "not connected".
+ */
 typedef enum {
     PA_0  = 0x00,
     PA_1  = 0x01,    
@@ -122,9 +145,23 @@ typedef enum {
 } PinName_t;
 
 
+/**
+ * @brief  Convert a pin name to its GPIO port and pin number.
+ * @param[in]  pinName  Pin name (e.g., PA_5)
+ * @param[out] GPIOx    GPIO port pointer (e.g., GPIOA)
+ * @param[out] pin      Pin number, 0~15
+ * @note   Only ports A, B, C, D, H are mapped. Any other port falls back to GPIOA.
+ * @par Example
+ * @code
+ * GPIO_TypeDef *port;
+ * unsigned int pin;
+ * ecPinmap(PA_5, &port, &pin);     // port = GPIOA, pin = 5
+ * port->ODR |= (1UL << pin);       // PA_5 = HIGH
+ * @endcode
+ */
 void ecPinmap(PinName_t pinName, GPIO_TypeDef **GPIOx, unsigned int *pin);
 
-
+/** @} */
 
 
 #ifdef __cplusplus

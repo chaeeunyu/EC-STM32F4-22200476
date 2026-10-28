@@ -61,7 +61,7 @@ void RCC_PLL_init() {
 	
 	// Enable PLL after configuration
 	RCC->CR   |= RCC_CR_PLLON; 
-	while((RCC->CR & RCC_CR_PLLRDY)>>25 != 0);
+	while((RCC->CR & RCC_CR_PLLRDY)>>25 == 0);
 	
 	// Select PLL as system clock
 	RCC->CFGR &= ~RCC_CFGR_SW;

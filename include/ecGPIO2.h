@@ -200,43 +200,49 @@ void FND_display(uint8_t num);
 void FND_select(uint8_t digit);
 
 /**
- * @brief  Set pull-up/pull-down for all digit-select pins.
- * @param[in] selectFND  Array of digit-select pins
- * @param[in] pupd       NPUPD, PULL_UP, or PULL_DOWN
+ * @brief  Set pull-up/pull-down for array pins.
+ * @param[in] pinArr  Array of pins (as a pointer)
+ * @param[in] n       The size of the array (# of elements)
+ * @param[in] pupd    NPUPD, PULL_UP, or PULL_DOWN
+ * @note  GPIO_*_init() must be called first.
  * @par Example
  * @code
  * PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
  * FND_select_init(pinsSel);
- * FND_select_pupd(pinsSel, NPUPD);
+ * GPIO_pupd_arr(pinsSel, 4, NPUPD);
  * @endcode
  */
-void FND_select_pupd(PinName_t *selectFND, uint32_t pupd);
+void GPIO_pupd_arr(PinName_t *pinArr, int n, uint32_t pupd);
 
 /**
- * @brief  Set output type for all digit-select pins.
- * @param[in] selectFND  Array of digit-select pins
+ * @brief  Set output type for array pins.
+ * @param[in] pinArr  Array of pins (as a pointer)
+ * @param[in] n       The size of the array (# of elements)
  * @param[in] otype      PUSH_PULL or OPEN_DRAIN
+ * @note  GPIO_*_init() must be called first.
  * @par Example
  * @code
  * PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
  * FND_select_init(pinsSel);
- * FND_select_otype(pinsSel, PUSH_PULL);
+ * GPIO_otype_arr(pinsSel, 4, PUSH_PULL);
  * @endcode
  */
-void FND_select_otype(PinName_t *selectFND, uint32_t otype);
+void GPIO_otype_arr(PinName_t *pinArr, int n, uint32_t otype);
 
 /**
- * @brief  Set output speed for all digit-select pins.
- * @param[in] selectFND  Array of digit-select pins
- * @param[in] ospeed     LOWSPEED, MEDSPEED, FASTSPEED, or HIGHSPEED
+ * @brief  Set output speed for array pins.
+ * @param[in] pinArr  Array of pins (as a pointer)
+ * @param[in] n       The size of the array (# of elements)
+ * @param[in] ospeed  LOWSPEED, MEDSPEED, FASTSPEED, or HIGHSPEED
+ * @note  GPIO_*_init() must be called first.
  * @par Example
  * @code
  * PinName_t pinsSel[4] = {PC_0, PC_1, PC_2, PC_3};
  * FND_select_init(pinsSel);
- * FND_select_ospeed(pinsSel, MEDSPEED);
+ * GPIO_ospeed_arr(pinsSel, 4, MEDSPEED);
  * @endcode
  */
-void FND_select_ospeed(PinName_t *selectFND, uint32_t ospeed);
+void GPIO_ospeed_arr(PinName_t *pinArr, int n, uint32_t ospeed);
 
 /** @} */
 

@@ -158,21 +158,21 @@ void FND_select_init(PinName_t *selectFND){
 	}
 }
 
-void FND_select_pupd(PinName_t *selectFND, uint32_t pupd){
-	for(int i=0; i<4; i++){
-		GPIO_pupd(_fndSel[i], pupd);
+void GPIO_pupd_arr(PinName_t *pinArr, int n, uint32_t pupd){
+	for(int i=0; i<n; i++){
+		GPIO_pupd(pinArr[i], pupd);
 	}
 }
 
-void FND_select_otype(PinName_t *selectFND, uint32_t otype){
-	for(int i=0; i<4; i++){
-		GPIO_otype(_fndSel[i], otype);
+void GPIO_otype_arr(PinName_t *pinArr, int n, uint32_t otype){
+	for(int i=0; i<n; i++){
+		GPIO_otype(pinArr[i], otype);
 	}
 }
 
-void FND_select_ospeed(PinName_t *selectFND, uint32_t ospeed){
-	for(int i=0; i<4; i++){
-		GPIO_ospeed(_fndSel[i], ospeed);
+void GPIO_ospeed_arr(PinName_t *pinArr, int n, uint32_t ospeed){
+	for(int i=0; i<n; i++){
+		GPIO_ospeed(pinArr[i], ospeed);
 	}
 }
 
