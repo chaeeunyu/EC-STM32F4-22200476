@@ -244,6 +244,16 @@ void GPIO_otype_arr(PinName_t *pinArr, int n, uint32_t otype);
  */
 void GPIO_ospeed_arr(PinName_t *pinArr, int n, uint32_t ospeed);
 
+/**
+ * @brief  Toggling LED lights
+ * @param[in] pinName  Target pin
+ * @par Example
+ * @code
+ * led_toggle(LD2_PIN);
+ * @endcode
+ */
+void led_toggle(PinName_t pinName);
+
 /** @} */
 
 #ifdef __cplusplus

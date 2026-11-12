@@ -482,6 +482,7 @@ Initialize GPIO pins and configure mode, speed, output type, pull-up/down, and r
 | `void` | [`GPIO_pupd_arr`](#gpio_pupd_arr)  | Set pull-up/pull-down for array pins. |
 | `void` | [`GPIO_otype_arr`](#gpio_otype_arr)  | Set output type for array pins. |
 | `void` | [`GPIO_ospeed_arr`](#gpio_ospeed_arr)  | Set output speed for array pins. |
+| `void` | [`led_toggle`](#led_toggle)  | Toggling LED lights. |
 
 ---
 
@@ -1016,6 +1017,39 @@ GPIO_ospeed_arr(pinsSel, 4, MEDSPEED);
 | `n` | `int` | The size of the array (# of elements) |
 | `ospeed` | `uint32_t` | LOWSPEED, MEDSPEED, FASTSPEED, or HIGHSPEED |
 
+---
+
+<a id="led_toggle"></a>
+
+### led_toggle
+
+```c
+void led_toggle(PinName_t pinName){
+	GPIO_TypeDef *Port;    
+	unsigned int pin;
+	ecPinmap(pinName,&Port,&pin);
+    
+	// YOUR CODE GOES HERE - Use XOR 
+	(Port->ODR) ^= (1UL<<pin);
+}
+```
+
+Defined in include/ecGPIO2.h:255
+
+Toggling LED lights.
+
+#### Example
+
+```cpp
+led_toggle(LD2_PIN);
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Target pin |
+
 ## Variables
 
 | Return | Name | Description |
@@ -1368,11 +1402,11 @@ void EXTI_init(PinName_t pinName, uint32_t trig_type, uint32_t priority){
  	EXTI->IMR |= 1UL << pin;
 	
 	
-	// NVIC(IRQ) Setting
+	// NVIC(IRQ) Setting - regardless of port# (e.g. PA0, PB0, PC0 -> EXTI0)
 	uint32_t EXTI_IRQn = 0;
 	if (pin < 5) 		EXTI_IRQn = pin + EXTI0_IRQn;
 	else if	(pin < 10) 	EXTI_IRQn = EXTI9_5_IRQn;
-	else 				EXTI_IRQn = EXTI15_10_IRQn;
+	else 				EXTI_IRQn = EXTI15_10_IRQn;		// EXTI10-15 share this EXTI
 		
 	NVIC_SetPriority(EXTI_IRQn, priority);	
 	NVIC_EnableIRQ(EXTI_IRQn); 				

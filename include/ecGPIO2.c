@@ -195,5 +195,12 @@ void FND_select(uint8_t digit){
 
 ////////////////////////////////////////////////////////////////////
 
-
+void led_toggle(PinName_t pinName){
+	GPIO_TypeDef *Port;    
+	unsigned int pin;
+	ecPinmap(pinName,&Port,&pin);
+    
+	// YOUR CODE GOES HERE - Use XOR 
+	(Port->ODR) ^= (1UL<<pin);
+}
 

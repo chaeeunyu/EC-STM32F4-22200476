@@ -53,11 +53,11 @@ void EXTI_init(PinName_t pinName, uint32_t trig_type, uint32_t priority){
  	EXTI->IMR |= 1UL << pin;
 	
 	
-	// NVIC(IRQ) Setting
+	// NVIC(IRQ) Setting - regardless of port# (e.g. PA0, PB0, PC0 -> EXTI0)
 	uint32_t EXTI_IRQn = 0;
 	if (pin < 5) 		EXTI_IRQn = pin + EXTI0_IRQn;
 	else if	(pin < 10) 	EXTI_IRQn = EXTI9_5_IRQn;
-	else 				EXTI_IRQn = EXTI15_10_IRQn;
+	else 				EXTI_IRQn = EXTI15_10_IRQn;		// EXTI10-15 share this EXTI
 		
 	NVIC_SetPriority(EXTI_IRQn, priority);	
 	NVIC_EnableIRQ(EXTI_IRQn); 				
