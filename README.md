@@ -81,31 +81,8 @@ Pin name. Encoded as 0xXY: X = port index ([PortName_t](#portname_t)), Y = pin n
 
 ### ecPinmap
 
-```c
-void ecPinmap(PinName_t pinName, GPIO_TypeDef **GPIOx, unsigned int *pin)
-{
-	// pinName -> port + pin   						e.g. pinName == O O O O   O O O O
-	//															     portNum    pinNum 
-	
-	unsigned int pinNum= pinName & (0x000F);  // pinNum 
-	*pin=pinNum;
-
-	unsigned int portNum=(pinName>>4);    //   portNum 
-
-	
-	if (portNum==0)
-		*GPIOx=GPIOA;
-	else if (portNum==1)
-		*GPIOx=GPIOB;
-	else if (portNum==2)
-		*GPIOx=GPIOC;
-	else if (portNum==3)
-		*GPIOx=GPIOD;
-	else if (portNum==7)
-		*GPIOx=GPIOH;
-	else 
-		*GPIOx=GPIOA;
-}
+```cpp
+void ecPinmap(PinName_t pinName, GPIO_TypeDef ** GPIOx, unsigned int * pin)
 ```
 
 Defined in include/ecPinNames.h:162
@@ -158,12 +135,8 @@ Select the system clock (HSI 16 MHz or PLL 84 MHz) and enable GPIO port clocks.
 
 ### delay_ms_HSI
 
-```c
-void delay_ms_HSI(uint32_t ms) {
-	//uint32_t EC_SYSCLK=16000000;
-	volatile uint32_t cnt = ((uint32_t)EC_SYSCLK / (1000UL * 6)) * ms;
-	while (cnt > 0) cnt--;
-}
+```cpp
+void delay_ms_HSI(uint32_t ms)
 ```
 
 Defined in include/ecRCC2.h:60
@@ -199,25 +172,8 @@ while (1) {
 
 ### RCC_HSI_init
 
-```c
-void RCC_HSI_init() {
-// Enable High Speed Internal Clock (HSI = 16 MHz)
-  //RCC->CR |= ((uint32_t)RCC_CR_HSION);
-	RCC->CR |= 0x00000001U;
-	
-  // wait until HSI is ready
-  //while ( (RCC->CR & (uint32_t) RCC_CR_HSIRDY) == 0 ) {;}
-	while ( (RCC->CR & 0x00000002U) == 0 ) {;}
-	
-  // Select HSI as system clock source 
-  	RCC->CFGR &= (uint32_t)(~RCC_CFGR_SW); 								// not essential
-  	RCC->CFGR |= (uint32_t)RCC_CFGR_SW_HSI; 								//00: HSI16 oscillator used as system clock
-
-	// Wait till HSI is used as system clock source
-  	while ((RCC->CFGR & (uint32_t)RCC_CFGR_SWS) != 0 ) {;}  
-
-	EC_SYSCLK=16000000;	
-}
+```cpp
+void RCC_HSI_init(void)
 ```
 
 Defined in include/ecRCC2.h:71
@@ -241,53 +197,8 @@ SysTick_init();      // 1 ms tick computed from 16 MHz
 
 ### RCC_PLL_init
 
-```c
-void RCC_PLL_init() {	
-	// To correctly read data from FLASH memory, the number of wait states (LATENCY)
-  // must be correctly programmed according to the frequency of the CPU clock
-  // (HCLK) and the supply voltage of the device.		
-	FLASH->ACR &= ~FLASH_ACR_LATENCY;
-	FLASH->ACR |=  FLASH_ACR_LATENCY_2WS;
-		
-	// Enable the Internal High Speed oscillator (HSI)
-	RCC->CR |= RCC_CR_HSION;
-	while((RCC->CR & RCC_CR_HSIRDY) == 0);
-	
-	// Disable PLL for configuration
-	RCC->CR    &= ~RCC_CR_PLLON;
-	
-	// Select clock source to PLL
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLSRC; 		// Set source for PLL: clear bits
-	RCC->PLLCFGR |= RCC_PLLCFGR_PLLSRC_HSI; // Set source for PLL: 0 =HSI, 1 = HSE
-	
-	// Make PLL as 84 MHz
-	// f(VCO clock) = f(PLL clock input) * (PLLN / PLLM) = 16MHz * 84/8 = 168 MHz
-	// f(PLL_R) = f(VCO clock) / PLLP = 168MHz/2 = 84MHz
-	RCC->PLLCFGR = (RCC->PLLCFGR & ~RCC_PLLCFGR_PLLN) | 84U << 6;
-	RCC->PLLCFGR = (RCC->PLLCFGR & ~RCC_PLLCFGR_PLLM) | 8U ; 
-	RCC->PLLCFGR &= ~RCC_PLLCFGR_PLLP;  // 00: PLLP = 2, 01: PLLP = 4, 10: PLLP = 6, 11: PLLP = 8	
-	
-	
-	// Enable PLL after configuration
-	RCC->CR   |= RCC_CR_PLLON; 
-	while((RCC->CR & RCC_CR_PLLRDY)>>25 == 0);
-	
-	// Select PLL as system clock
-	RCC->CFGR &= ~RCC_CFGR_SW;
-	RCC->CFGR |= RCC_CFGR_SW_PLL;
-	
-	// Wait until System Clock has been selected
-	while ((RCC->CFGR & RCC_CFGR_SWS) != 8UL);
-	
-	// The maximum frequency of the AHB and APB2 is 100MHz,
-	// The maximum frequency of the APB1 is 50 MHz.
-	RCC->CFGR &= ~RCC_CFGR_HPRE;  		// AHB prescaler = 1; SYSCLK not divided (84MHz)
-	RCC->CFGR &= ~RCC_CFGR_PPRE1; 		// APB high-speed prescaler (APB1) = 2, HCLK divided by 2 (42MHz)
-	RCC->CFGR |=  RCC_CFGR_PPRE1_2;
-	RCC->CFGR &= ~RCC_CFGR_PPRE2; 		// APB high-speed prescaler (APB2) = 1, HCLK not divided	(84MHz)
-	
-	EC_SYSCLK=84000000;
-}
+```cpp
+void RCC_PLL_init(void)
 ```
 
 Defined in include/ecRCC2.h:87
@@ -313,12 +224,8 @@ USART2_init();       // baud rate computed from APB1 = 42 MHz
 
 ### RCC_GPIOA_enable
 
-```c
-void RCC_GPIOA_enable()
-{
-	// RCC Peripheral Clock Enable Register 
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOAEN;
-}
+```cpp
+void RCC_GPIOA_enable(void)
 ```
 
 Defined in include/ecRCC2.h:99
@@ -340,12 +247,8 @@ GPIOA->MODER |=  (1UL << (2*5));      // PA_5 = OUTPUT
 
 ### RCC_GPIOB_enable
 
-```c
-void RCC_GPIOB_enable()
-{
-	// RCC Peripheral Clock Enable Register 
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOBEN;
-}
+```cpp
+void RCC_GPIOB_enable(void)
 ```
 
 Defined in include/ecRCC2.h:110
@@ -366,12 +269,8 @@ GPIOB->MODER &= ~(3UL << (2*10));     // PB_10 = INPUT
 
 ### RCC_GPIOC_enable
 
-```c
-void RCC_GPIOC_enable()
-{
-	// RCC Peripheral Clock Enable Register
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOCEN;
-}
+```cpp
+void RCC_GPIOC_enable(void)
 ```
 
 Defined in include/ecRCC2.h:121
@@ -392,12 +291,8 @@ GPIOC->MODER &= ~(3UL << (2*13));     // PC_13 (user button) = INPUT
 
 ### RCC_GPIOD_enable
 
-```c
-void RCC_GPIOD_enable()
-{
-	// RCC Peripheral Clock Enable Register
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIODEN;
-}
+```cpp
+void RCC_GPIOD_enable(void)
 ```
 
 Defined in include/ecRCC2.h:133
@@ -419,12 +314,8 @@ GPIOD->MODER |=  (1UL << (2*2));      // PD_2 = OUTPUT
 
 ### RCC_GPIOE_enable
 
-```c
-void RCC_GPIOE_enable()
-{
-	// RCC Peripheral Clock Enable Register
-	RCC->AHB1ENR |= RCC_AHB1ENR_GPIOEEN;
-}
+```cpp
+void RCC_GPIOE_enable(void)
 ```
 
 Defined in include/ecRCC2.h:143
@@ -490,30 +381,8 @@ Initialize GPIO pins and configure mode, speed, output type, pull-up/down, and r
 
 ### GPIO_init
 
-```c
-void GPIO_init(PinName_t pinName, uint32_t mode){     // clock enable
-	GPIO_TypeDef * Port;
-	unsigned int pin;
-	ecPinmap(pinName, &Port, &pin);
-	
-	// mode  : Input(0), Output(1), AlterFunc(2), Analog(3)   
-	if (Port == GPIOA)
-		RCC_GPIOA_enable();
-	if (Port == GPIOB)
-		RCC_GPIOB_enable();
-	if (Port == GPIOC)
-		RCC_GPIOC_enable();
-	if(Port == GPIOD)
-		RCC_GPIOD_enable();
-	if(Port == GPIOE)
-		RCC_GPIOE_enable();
-	
-	
-	// You can also make and use a more general function of
-	// void RCC_GPIO_enable(GPIO_TypeDef *Port); --> 시도해보기
-
-	GPIO_mode(pinName, mode);
-}
+```cpp
+void GPIO_init(PinName_t pinName, uint32_t mode)
 ```
 
 Defined in include/ecGPIO2.h:75
@@ -544,15 +413,8 @@ GPIO_init(PC_13, INPUT);     // user button (B1)
 
 ### GPIO_mode
 
-```c
-void GPIO_mode(PinName_t pinName, uint32_t mode){
-   GPIO_TypeDef * Port;
-   unsigned int pin;
-   ecPinmap(pinName,&Port,&pin);
-
-   Port->MODER &= ~(3UL<<(2*pin));     
-   Port->MODER |= mode<<(2*pin);    
-}
+```cpp
+void GPIO_mode(PinName_t pinName, uint32_t mode)
 ```
 
 Defined in include/ecGPIO2.h:87
@@ -579,15 +441,8 @@ GPIO_mode(PA_2, AF);         // USART2 TX
 
 ### GPIO_ospeed
 
-```c
-void GPIO_ospeed(PinName_t pinName, uint32_t speed){
-	GPIO_TypeDef * Port;
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-
-	Port->OSPEEDR &= ~(3UL<<(2*pin));
-	Port->OSPEEDR |= speed<<(2*pin);
-}
+```cpp
+void GPIO_ospeed(PinName_t pinName, uint32_t speed)
 ```
 
 Defined in include/ecGPIO2.h:100
@@ -618,15 +473,8 @@ GPIO_ospeed(PA_5, FASTSPEED);
 
 ### GPIO_otype
 
-```c
-void GPIO_otype(PinName_t pinName, uint32_t type){
-	GPIO_TypeDef * Port;
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-
-   	Port->OTYPER &= ~(1UL<<pin);
-	Port->OTYPER |= type<<pin;
-}
+```cpp
+void GPIO_otype(PinName_t pinName, uint32_t type)
 ```
 
 Defined in include/ecGPIO2.h:113
@@ -657,15 +505,8 @@ GPIO_otype(PA_5, PUSH_PULL);
 
 ### GPIO_pupd
 
-```c
-void GPIO_pupd(PinName_t pinName, uint32_t pupd){
-	GPIO_TypeDef * Port;
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-
-   	Port->PUPDR &= ~(3UL<<(2*pin));
-	Port->PUPDR |= pupd<<(2*pin);
-}
+```cpp
+void GPIO_pupd(PinName_t pinName, uint32_t pupd)
 ```
 
 Defined in include/ecGPIO2.h:125
@@ -692,14 +533,8 @@ GPIO_pupd(PA_0, PULL_UP);    // switch connected between PA_0 and GND
 
 ### GPIO_write
 
-```c
-void GPIO_write(PinName_t pinName, uint32_t Output){
-	GPIO_TypeDef *Port;
-	unsigned int pin;
-	ecPinmap(pinName, &Port, &pin);
-
-	Output == HIGH ? (Port->ODR |= (1UL<<pin)) : (Port->ODR &= ~(1UL<<pin));
-}
+```cpp
+void GPIO_write(PinName_t pinName, uint32_t Output)
 ```
 
 Defined in include/ecGPIO2.h:138
@@ -730,17 +565,8 @@ GPIO_write(PA_5, HIGH);   // LED on
 
 ### GPIO_read
 
-```c
-uint32_t GPIO_read(PinName_t pinName){
-	GPIO_TypeDef * Port;
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-	unsigned int value;
-
-   	// value = (Port->IDR) & (1UL<<pin);
-	value = ((Port->IDR)>>pin)&(1UL); // ---> more desirable
-	return value; 
-}
+```cpp
+uint32_t GPIO_read(PinName_t pinName)
 ```
 
 Defined in include/ecGPIO2.h:150
@@ -772,13 +598,8 @@ buttonState = GPIO_read(BUTTON_PIN);
 
 ### FND_init
 
-```c
-void FND_init(PinName_t *pinFND){
-	for (int i=0; i<8; i++){
-		_fndPins[i] = pinFND[i];
-		GPIO_init(_fndPins[i], OUTPUT);
-	}
-}
+```cpp
+void FND_init(PinName_t * pinFND)
 ```
 
 Defined in include/ecGPIO2.h:165
@@ -804,13 +625,8 @@ FND_init(pinsFND);
 
 ### FND_select_init
 
-```c
-void FND_select_init(PinName_t *selectFND){	
-	for(int i=0; i<4; i++){
-		_fndSel[i] = selectFND[i];
-		GPIO_init(_fndSel[i], OUTPUT);
-	}
-}
+```cpp
+void FND_select_init(PinName_t * selectFND)
 ```
 
 Defined in include/ecGPIO2.h:176
@@ -836,15 +652,8 @@ FND_select_init(pinsSel);
 
 ### FND_display
 
-```c
-void FND_display(uint8_t num){
-	if(num > 9){
-		num = 10;   // error: print dot
-	}
-	for(int i=0; i<8; i++){
-		GPIO_write(_fndPins[i], numberFND[num][i]);
-	}
-}
+```cpp
+void FND_display(uint8_t num)
 ```
 
 Defined in include/ecGPIO2.h:188
@@ -874,12 +683,8 @@ FND_display(numDisplay1);
 
 ### FND_select
 
-```c
-void FND_select(uint8_t digit){
-	for(int i=0; i<4; i++){
-		GPIO_write(_fndSel[i], (digit == i) ? HIGH : LOW);
-	}	
-}
+```cpp
+void FND_select(uint8_t digit)
 ```
 
 Defined in include/ecGPIO2.h:200
@@ -909,12 +714,8 @@ FND_select(selectFND2);
 
 ### GPIO_pupd_arr
 
-```c
-void GPIO_pupd_arr(PinName_t *pinArr, int n, uint32_t pupd){
-	for(int i=0; i<n; i++){
-		GPIO_pupd(pinArr[i], pupd);
-	}
-}
+```cpp
+void GPIO_pupd_arr(PinName_t * pinArr, int n, uint32_t pupd)
 ```
 
 Defined in include/ecGPIO2.h:215
@@ -947,12 +748,8 @@ GPIO_pupd_arr(pinsSel, 4, NPUPD);
 
 ### GPIO_otype_arr
 
-```c
-void GPIO_otype_arr(PinName_t *pinArr, int n, uint32_t otype){
-	for(int i=0; i<n; i++){
-		GPIO_otype(pinArr[i], otype);
-	}
-}
+```cpp
+void GPIO_otype_arr(PinName_t * pinArr, int n, uint32_t otype)
 ```
 
 Defined in include/ecGPIO2.h:230
@@ -985,12 +782,8 @@ GPIO_otype_arr(pinsSel, 4, PUSH_PULL);
 
 ### GPIO_ospeed_arr
 
-```c
-void GPIO_ospeed_arr(PinName_t *pinArr, int n, uint32_t ospeed){
-	for(int i=0; i<n; i++){
-		GPIO_ospeed(pinArr[i], ospeed);
-	}
-}
+```cpp
+void GPIO_ospeed_arr(PinName_t * pinArr, int n, uint32_t ospeed)
 ```
 
 Defined in include/ecGPIO2.h:245
@@ -1023,15 +816,8 @@ GPIO_ospeed_arr(pinsSel, 4, MEDSPEED);
 
 ### led_toggle
 
-```c
-void led_toggle(PinName_t pinName){
-	GPIO_TypeDef *Port;    
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-    
-	// YOUR CODE GOES HERE - Use XOR 
-	(Port->ODR) ^= (1UL<<pin);
-}
+```cpp
+void led_toggle(PinName_t pinName)
 ```
 
 Defined in include/ecGPIO2.h:255
@@ -1093,34 +879,8 @@ Generate a 1 ms tick with the SysTick timer and provide millisecond delays.
 
 ### SysTick_init
 
-```c
-void SysTick_init(void){
-	//  SysTick Control and Status Register
-	// Disable SysTick IRQ and SysTick Counter
-	SysTick->CTRL = 0;											
-	
-	// Select processor clock
-	// 1 = processor clock;  0 = external clock
-	SysTick->CTRL |= SysTick_CTRL_CLKSOURCE_Msk;
-
-	// SysTick Reload Value Register : (SYSCLK / 1000) - 1  ->  1 ms
-	//   HSI 16 MHz :  15999      PLL 84 MHz : 83999 
-	SysTick->LOAD = (uint32_t)EC_SYSCLK *1UL/ 1000UL - 1UL;   // 1[ms] = 1/1000[s] 
-
-	// SysTick Current Value Register : Reset counter value to 0
-	SysTick->VAL = 0;
-
-	// Enables SysTick exception request
-	// 1 = counting down to zero --> SysTick exception request
-	SysTick->CTRL |= SysTick_CTRL_TICKINT_Msk;
-	
-	// Enable SysTick IRQ and SysTick Timer
-	SysTick->CTRL |= SysTick_CTRL_ENABLE_Msk;
-		
-	// Enable interrupt in NVIC
-	NVIC_SetPriority(SysTick_IRQn, 15);		// Set Priority to 1
-	NVIC_EnableIRQ(SysTick_IRQn);			// Enable interrupt in NVIC
-}
+```cpp
+void SysTick_init(void)
 ```
 
 Defined in include/ecSysTick2.h:56
@@ -1144,10 +904,8 @@ SysTick_init();      // msTicks increases by 1 every 1 ms
 
 ### SysTick_Handler
 
-```c
-void SysTick_Handler(void){
-	SysTick_counter();	
-}
+```cpp
+void SysTick_Handler(void)
 ```
 
 Defined in include/ecSysTick2.h:62
@@ -1164,10 +922,8 @@ SysTick interrupt handler. Called by hardware every 1 ms; increments msTicks.
 
 ### SysTick_counter
 
-```c
-void SysTick_counter(void){
-	msTicks++;
-}
+```cpp
+void SysTick_counter(void)
 ```
 
 Defined in include/ecSysTick2.h:68
@@ -1184,12 +940,8 @@ Increment msTicks by 1.
 
 ### delay_ms
 
-```c
-void delay_ms (uint32_t msec){
-  	uint32_t curTicks;
-  	curTicks = msTicks;
-	while ((msTicks - curTicks) < msec){;}		// unsigned math: safe across wrap-around
-}
+```cpp
+void delay_ms(uint32_t msec)
 ```
 
 Defined in include/ecSysTick2.h:88
@@ -1229,11 +981,8 @@ while (1) {
 
 ### SysTick_reset
 
-```c
+```cpp
 void SysTick_reset(void)
-{
-	SysTick->VAL = 0;
-}
 ```
 
 Defined in include/ecSysTick2.h:99
@@ -1257,10 +1006,8 @@ uint32_t start = SysTick_val();
 
 ### SysTick_val
 
-```c
-uint32_t SysTick_val(void) {
-	return SysTick->VAL;
-}
+```cpp
+uint32_t SysTick_val(void)
 ```
 
 Defined in include/ecSysTick2.h:112
@@ -1362,55 +1109,8 @@ Defined in include/ecEXTI2.h:41
 
 ### EXTI_init
 
-```c
-void EXTI_init(PinName_t pinName, uint32_t trig_type, uint32_t priority){
-
-	GPIO_TypeDef *Port;
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-	
-	// Enable EXTI Clock with SYSCFG controller clock 	
-	RCC->APB2ENR |= RCC_APB2ENR_SYSCFGEN;		
-	
-
-	// Connect EXTI to the GPIO Port_y Pin_x
-	// Pin 0~3: EXTICR1 // EXTICR[0]
-	// Pin 4~7: EXTICR2 // EXTICR[1]
-	// Pin 8~11: EXTICR3 // EXTICR[2]
-	// Pin 12~15: EXTICR4 // EXTICR[3]	
-	uint32_t EXTICR_port=0;
-	if		(Port == GPIOA) EXTICR_port = 0;
-	else if	(Port == GPIOB) EXTICR_port = 1;
-	else if	(Port == GPIOC) EXTICR_port = 2;
-	else if	(Port == GPIOD) EXTICR_port = 3;
-	else					EXTICR_port = 4;
-	
-	SYSCFG->EXTICR[pin/4] &= ~(0xFUL<<((pin%4)*4));			// clear 4 bits
-	SYSCFG->EXTICR[pin/4] |= (EXTICR_port<<((pin%4)*4));			// Set 4 bits
-	
-
-	// Select  Trigger edge (RISE, FALL, BOTH)
-	if (trig_type == FALL) 		EXTI->FTSR |= 1UL << pin;  // Falling trigger enable 
-	else if	(trig_type == RISE) EXTI->RTSR |= 1UL << pin;   // Rising trigger enable 
-	else if	(trig_type == BOTH) {			// Both falling/rising trigger enable
-		EXTI->RTSR |= (1UL << pin); 
-		EXTI->FTSR |= (1UL << pin);
-	} 
-	
-	// Enable EXTI, with Not-Masked Interrupt Request 
-	// Not-mask (==Enable) EXTIx
- 	EXTI->IMR |= 1UL << pin;
-	
-	
-	// NVIC(IRQ) Setting - regardless of port# (e.g. PA0, PB0, PC0 -> EXTI0)
-	uint32_t EXTI_IRQn = 0;
-	if (pin < 5) 		EXTI_IRQn = pin + EXTI0_IRQn;
-	else if	(pin < 10) 	EXTI_IRQn = EXTI9_5_IRQn;
-	else 				EXTI_IRQn = EXTI15_10_IRQn;		// EXTI10-15 share this EXTI
-		
-	NVIC_SetPriority(EXTI_IRQn, priority);	
-	NVIC_EnableIRQ(EXTI_IRQn); 				
-}
+```cpp
+void EXTI_init(PinName_t pinName, uint32_t trig_type, uint32_t priority)
 ```
 
 Defined in include/ecEXTI2.h:61
@@ -1452,14 +1152,8 @@ EXTI_init(PC_13, FALL, 0);        // button press = falling edge, priority 0 (hi
 
 ### EXTI_enable
 
-```c
-void EXTI_enable(PinName_t pinName) {
-	GPIO_TypeDef *Port;
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-	
-	EXTI->IMR |= (1UL<<pin);     // not masked (i.e., Interrupt enabled)
-}
+```cpp
+void EXTI_enable(PinName_t pinName)
 ```
 
 Defined in include/ecEXTI2.h:74
@@ -1490,14 +1184,8 @@ EXTI_enable(PC_13);               // accept the button again
 
 ### EXTI_disable
 
-```c
-void EXTI_disable(PinName_t pinName) {
-	GPIO_TypeDef *Port;
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-
-	EXTI->IMR &= ~(1UL<<pin);     // masked (i.e., Interrupt disabled)
-}
+```cpp
+void EXTI_disable(PinName_t pinName)
 ```
 
 Defined in include/ecEXTI2.h:86
@@ -1524,15 +1212,8 @@ EXTI_enable(PC_13);
 
 ### is_pending_EXTI
 
-```c
-uint32_t is_pending_EXTI(PinName_t pinName) {
-	GPIO_TypeDef *Port;
-	unsigned int pin;
-	ecPinmap(pinName,&Port,&pin);
-
-	uint32_t EXTI_PRx = ((EXTI->PR)>>pin) & (1UL);     // read PRx, EXTI pending bit.  Use  (REG>>k & 1) to read.
-	return EXTI_PRx; 	// Return only 0 or 1
-}
+```cpp
+uint32_t is_pending_EXTI(PinName_t pinName)
 ```
 
 Defined in include/ecEXTI2.h:106
@@ -1572,16 +1253,8 @@ void EXTI15_10_IRQHandler(void) {
 
 ### clear_pending_EXTI
 
-```c
-void clear_pending_EXTI(PinName_t pinName){
-	// Port, Pin Configuration
-	GPIO_TypeDef *Port;
-	unsigned int pin;
-	ecPinmap(pinName, &Port, &pin);
-
-	// clear by writing 1 to the pending bit
-	EXTI->PR  = (1 << pin);     
-}
+```cpp
+void clear_pending_EXTI(PinName_t pinName)
 ```
 
 Defined in include/ecEXTI2.h:125
@@ -1758,22 +1431,8 @@ FSM state numbers. Full-step uses S0\~S3, half-step uses S0\~S7.
 
 ### stepper_init
 
-```c
-void stepper_init(uint32_t mode, PinName_t *pinStepper){
-	if (mode == HALF) 
-		fsm = fsm_Half;
-	else
-		fsm = fsm_Full;
-
-	//  GPIO Digital Out Initiation
-	// For A, B, AN, BN
-
-	for (int i=0; i<4; i++){
-		stepperPins[i] = pinStepper[i];
-		GPIO_init(stepperPins[i], OUTPUT);
-	}
-	GPIO_ospeed_arr(stepperPins, 4, FASTSPEED);
-}
+```cpp
+void stepper_init(uint32_t mode, PinName_t * pinStepper)
 ```
 
 Defined in include/ecStepper2.h:81
@@ -1804,12 +1463,8 @@ stepper_init(HALF, pinStepper);    // half-stepping mode
 
 ### stepper_speed
 
-```c
-void stepper_speed (uint32_t speedRPM, uint32_t step_per_Rev){      // rpm
-		_step_delay = 60*1000/(step_per_Rev*speedRPM); 		//in [msec] 
-		// [usec] can be used for a higher accuracy
-		// But needs delay_us() 
-}
+```cpp
+void stepper_speed(uint32_t speedRPM, uint32_t step_per_rev)
 ```
 
 Defined in include/ecStepper2.h:92
@@ -1835,26 +1490,8 @@ stepper_speed(5, FULLSTEP_PER_REV);    // 5 rpm -> _step_delay = 60000/(2048*5) 
 
 ### stepper_step
 
-```c
-void stepper_step(uint32_t steps, uint32_t direction){
-	// Exit if stepper_init() not called 
-	if (fsm == 0) return;
-	_steps = steps;
-
-	// run for step size: 
-	for (uint32_t i = 0; i < _steps; i++){
-		while(pause_flag == 1) {;}  	// pause_flag: (resume=0, pause=1)
-		// Update Present State
-		state = fsm[state].next[direction];
-		
-		// Output of Present State
-		stepper_out(state);
-	
-		// Delay for steppermotor speed
-		delay_ms(_step_delay);
-	}
-	
-}
+```cpp
+void stepper_step(uint32_t steps, uint32_t direction)
 ```
 
 Defined in include/ecStepper2.h:106
@@ -1885,17 +1522,8 @@ stepper_step(FULLSTEP_PER_REV*5, DIR_CCW);   // 5 revolutions, CCW (full-steppin
 
 ### stepper_out
 
-```c
-void stepper_out(uint32_t state){
-	
-	// stepperPins[0]=A, stepperPins[1]=B, ...
-	// out[0]=A, out[1]=B, ...
-
-	// i want to give '1' to a certain pins(stepperPins[], A B A' B')
-	for(uint32_t i=0; i<4; i++){
-		GPIO_write(stepperPins[i], fsm[state].out[i]);
-	}
-}
+```cpp
+void stepper_out(uint32_t state)
 ```
 
 Defined in include/ecStepper2.h:117
@@ -1924,11 +1552,8 @@ stepper_out(S1);    // full-stepping: A=LOW, B=HIGH, A'=HIGH, B'=LOW
 
 ### stepper_pause
 
-```c
-void stepper_pause(void) {
-    
-	pause_flag ^= 1;
-}
+```cpp
+void stepper_pause(void)
 ```
 
 Defined in include/ecStepper2.h:132
@@ -1956,15 +1581,8 @@ void EXTI15_10_IRQHandler(void) {
 
 ### stepper_stop
 
-```c
-void stepper_stop(void){
-	_steps = 0;    
-    
-	// All pins DigitalOut '0'
-	for(uint32_t i=0; i<4; i++){
-		GPIO_write(stepperPins[i], LOW);
-	}
-}
+```cpp
+void stepper_stop(void)
 ```
 
 Defined in include/ecStepper2.h:147
@@ -2200,48 +1818,8 @@ Defined in include/ecUART2.h:55
 
 ### USART_init
 
-```c
-void USART_init(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO_RX, uint32_t baud){
-//1. GPIO Pin for TX and RX
-	USART_pins(USARTx, pin_GPIO_TX, pin_GPIO_RX);
-
-//2. USARTx (x=2,1,6) configuration
-	USART_clock_enable(USARTx);
-
-	// Disable USARTx.
-	USARTx->CR1 &= ~USART_CR1_UE; 	// USART disable
-
-	// No Parity / 8-bit word length / Oversampling x16 / Stop bit =1
-	USARTx->CR1 &= ~USART_CR1_PCE;
-	USARTx->CR1 &= ~USART_CR1_M;
-	USARTx->CR1 &= ~USART_CR1_OVER8;
-	USARTx->CR2 &= ~USART_CR2_STOP;
-
-	// Set Baudrate using APB frequency
-	// If oversampling by 16, Tx/Rx baud = f_CK / (16*USARTDIV),
-	// If oversampling by 8,  Tx/Rx baud = f_CK / (8*USARTDIV)
-	USART_baud(USARTx, baud);
-
-	// Enable TX, RX, and USARTx
-	USARTx->CR1 |= (USART_CR1_RE | USART_CR1_TE);   	// Transmitter and Receiver enable
-	USARTx->CR1 |= USART_CR1_UE; 						          // USART enable
-
-// 3. RX interrupt (data ready to be read)
-  // Enable RXNE interrupt
-	USARTx->CR1 |= USART_CR1_RXNEIE;
-  // USART_IRQn
-	uint32_t USART_IRQ = USART2_IRQn;	// USART2
-	if(USARTx == USART1){
-		USART_IRQ = USART1_IRQn;		// USART1
-	}
-	if(USARTx == USART6){
-		USART_IRQ = USART6_IRQn;		// USART6
-	}
- 
-	NVIC_SetPriority(USART_IRQ, 1);
-	NVIC_EnableIRQ(USART_IRQ);
-
-}
+```cpp
+void USART_init(USART_TypeDef * USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO_RX, uint32_t baud)
 ```
 
 Defined in include/ecUART2.h:96
@@ -2276,29 +1854,8 @@ USART_init(USART1, PA_9, PA_10, BAUD_9600);    // e.g., Bluetooth module
 
 ### USART_baud
 
-```c
-void USART_baud(USART_TypeDef* USARTx, uint32_t baud){
-	// Disable USARTx.
-	USARTx->CR1  &= ~USART_CR1_UE; 						// USART disable
-	USARTx->BRR = 0;
-
-	// Configure Baud-rate
-	float fCK = EC_SYSCLK;                                   // if(USARTx==USART1 || USARTx==USART6), APB2
-	                                                         // (84MHz after RCC_PLL_init(), 16MHz after RCC_HSI_init())
-	if(USARTx == USART2) fCK =fCK/2;      // APB1
-  float USARTDIV = (float) fCK/16.0/baud;
-
-	// Method 1 : build the two BRR fields explicitly
-	//   BRR[15:4] = DIV_Mantissa (integer part of USARTDIV)
-	//   BRR[3:0]  = DIV_Fraction (counts 1/16 steps -> multiply the fraction by 16)
-	uint32_t mantissa = (uint32_t)USARTDIV;
-	uint32_t fraction = round((USARTDIV - mantissa) * 16);
-	if (fraction > 15) { mantissa += 1; fraction = 0; }
-	USARTx->BRR = ((mantissa<<4) | fraction); 
-
-	// Enable TX, RX, and USARTx
-	USARTx->CR1 |= USART_CR1_UE;
-}
+```cpp
+void USART_baud(USART_TypeDef * USARTx, uint32_t baud)
 ```
 
 Defined in include/ecUART2.h:108
@@ -2328,46 +1885,8 @@ USART_baud(USART2, BAUD_115200);
 
 ### USART_pins
 
-```c
-void USART_pins(USART_TypeDef* USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO_RX){
-	GPIO_TypeDef *GPIO_TX;
-	unsigned int pinTX;
-	ecPinmap(pin_GPIO_TX, &GPIO_TX, &pinTX);
-
-	GPIO_TypeDef *GPIO_RX;
-	unsigned int pinRX;
-	ecPinmap(pin_GPIO_RX, &GPIO_RX, &pinRX);
-
-	// Alternate Function, Push-Pull, No Pull-up/down, High speed
-	// TX settings
-	GPIO_init(pin_GPIO_TX, AF);
-	GPIO_otype(pin_GPIO_TX, PUSH_PULL);
-	GPIO_pupd(pin_GPIO_TX, NPUPD);
-	GPIO_ospeed(pin_GPIO_TX, HIGHSPEED);
-	
-	// RX settings
-	GPIO_init(pin_GPIO_RX, AF);
-	GPIO_otype(pin_GPIO_RX, PUSH_PULL);
-	GPIO_pupd(pin_GPIO_RX, NPUPD);
-	GPIO_ospeed(pin_GPIO_RX, HIGHSPEED);
-
-	// Set Alternate Function Register for USARTx
-	//   AF7 - USART1, USART2
-	//   AF8 - USART6
-	uint32_t AF_num = (USARTx == USART6) ? 8 : 7;
-	if (pinTX < 8) { GPIO_TX->AFR[0] &= ~(0xFUL << (4*pinTX));     GPIO_TX->AFR[0] |= AF_num << (4*pinTX); }
-	else           { GPIO_TX->AFR[1] &= ~(0xFUL << (4*(pinTX-8))); GPIO_TX->AFR[1] |= AF_num << (4*(pinTX-8)); }
-	
-  	if (pinRX < 8) {
-    	GPIO_RX->AFR[0] &= ~(0xFUL << (4*pinRX));  // clear the 4-bit AF field
-		GPIO_RX->AFR[0] |= AF_num << (4*pinRX);  // set AF7 (USART1/2) or AF8 (USART6)
-  	}
-  	else{
-    	GPIO_RX->AFR[1] &= ~(0xFUL << (4*(pinRX-8)));  // clear (offset by 8 in AFRH)
-		GPIO_RX->AFR[1] |= AF_num << (4*(pinRX-8));  // set AF number
-  	}
-
-}
+```cpp
+void USART_pins(USART_TypeDef * USARTx, PinName_t pin_GPIO_TX, PinName_t pin_GPIO_RX)
 ```
 
 Defined in include/ecUART2.h:120
@@ -2394,10 +1913,8 @@ USART_pins(USART6, PA_11, PA_12);   // TX = PA_11, RX = PA_12, AF8
 
 ### USART1_baud
 
-```c
-void USART1_baud(uint32_t baud){
-	USART_baud(USART1, baud);
-}
+```cpp
+void USART1_baud(uint32_t baud)
 ```
 
 Defined in include/ecUART2.h:132
@@ -2423,10 +1940,8 @@ USART1_baud(BAUD_38400);
 
 ### USART2_baud
 
-```c
-void USART2_baud(uint32_t baud){
-	USART_baud(USART2, baud);
-}
+```cpp
+void USART2_baud(uint32_t baud)
 ```
 
 Defined in include/ecUART2.h:143
@@ -2452,96 +1967,8 @@ USART2_baud(BAUD_115200);
 
 ### USART1_init
 
-```c
-void USART1_init(void){
-	// ********************** USART 1 ***************************
-	// PA_9 = USART1_TX (default)	// PB_6  (option)
-	// PA_10 = USART1_RX (default)	// PB_3 (option)
-	// APB2
-	// **********************************************************
-	//USART_init(USART1, PA_9, PA_10, 9600);
-
-  ////////////////////////////////////////////
-  //  for USART1  ONLY
-  ////////////////////////////////////////////
-  USART_TypeDef *USARTx= USART1;
-
-//1. GPIO Pin for TX and RX
-// Default : PA_9 = USART1_TX, PA_10 = USART1_RX
-	PinName_t pin_GPIO_TX  =PA_9;
-	PinName_t pin_GPIO_RX  =PA_10;
-
-	GPIO_TypeDef *GPIO_TX;
-	unsigned int pinTX;
-	ecPinmap(pin_GPIO_TX, &GPIO_TX, &pinTX);
-	GPIO_TypeDef *GPIO_RX;
-	unsigned int pinRX;
-	ecPinmap(pin_GPIO_RX, &GPIO_RX, &pinRX);
-
-	// Alternate Function, Push-Pull, No Pull-up/down, High speed
-	GPIO_init(pin_GPIO_TX, AF);
-	GPIO_otype(pin_GPIO_TX, PUSH_PULL);
-	GPIO_pupd(pin_GPIO_TX, NPUPD);
-	GPIO_ospeed(pin_GPIO_TX, HIGHSPEED);
-
-	GPIO_init(pin_GPIO_RX, AF);
-	GPIO_otype(pin_GPIO_RX, PUSH_PULL);
-	GPIO_pupd(pin_GPIO_RX, NPUPD);
-	GPIO_ospeed(pin_GPIO_RX, HIGHSPEED);
-
- 	// Set Alternate Function Register for USARTx
-	//   AF7 - USART1, USART2
-	//   AF8 - USART6
-	uint32_t AF_num = (USARTx == USART6) ? 8 : 7;
-	if (pinTX < 8) { GPIO_TX->AFR[0] &= ~(0xFUL << (4*pinTX));     GPIO_TX->AFR[0] |= AF_num << (4*pinTX); }
-	else           { GPIO_TX->AFR[1] &= ~(0xFUL << (4*(pinTX-8))); GPIO_TX->AFR[1] |= AF_num << (4*(pinTX-8)); }
-	if (pinRX < 8) { GPIO_RX->AFR[0] &= ~(0xFUL << (4*pinRX));     GPIO_RX->AFR[0] |= AF_num << (4*pinRX); }
-	else           { GPIO_RX->AFR[1] &= ~(0xFUL << (4*(pinRX-8))); GPIO_RX->AFR[1] |= AF_num << (4*(pinRX-8)); }
-
-
-//2. USARTx (x=2,1,6) configuration
-  // Enable USART peripheral clock
-  	//      USART2   = APB1
-  	//      USART1,6 = APB2
-	USART_clock_enable(USARTx);
-
-  // Disable USARTx.
-	USARTx->CR1 &= ~USART_CR1_UE;			// disable while configuring
-
-  // No Parity / 8-bit word length / Oversampling x16
-	USARTx->CR1 &= ~USART_CR1_M;			// 8 data bits
-	USARTx->CR1 &= ~USART_CR1_PCE;			// no parity
-	USARTx->CR1 &= ~USART_CR1_OVER8;		// oversampling by 16
-	USARTx->CR2 &= ~USART_CR2_STOP;			// 1 stop bit
-
-  // BAUD RATE (Default: 9600)
-  //    Baud rate : BRR[15:4]=mantissa, BRR[3:0]=fraction (1/16 steps)
-  //    USARTDIV = f_APB1 / (16 x baud)
-  //    USART_baud(USARTx, 9600);
-  uint32_t baud=  9600;				// Default baud rate for USART2
-  float fCK      = (float)EC_SYSCLK / 2;		// APB1 : 84MHz PLL -> 42MHz
-  float USARTDIV = fCK / 16 / baud;
-  uint32_t MNT   = (uint32_t)USARTDIV;
-  uint32_t FRC   = round((USARTDIV - MNT) * 16);
-	if (FRC > 15) { MNT += 1; FRC = 0; }		// carry into the mantissa
-	USARTx->BRR = (MNT << 4) | FRC;
-
-  // Enable TX, RX
-	USARTx->CR1 |= (USART_CR1_TE | USART_CR1_RE);	// transmitter + receiver
-  // Enable USART
-  	USARTx->CR1 |= USART_CR1_UE;
-
-// 3. RX interrupt (data ready to be read)
-  // Enable RXNE interrupt
-	USARTx->CR1 |= USART_CR1_RXNEIE;
-  // USART2 IRQ
-	uint32_t USART_IRQ = USART2_IRQn;
-	if (USARTx == USART1){
-		USART_IRQ = USART1_IRQn;
-	}
-	NVIC_SetPriority(USART_IRQ, 1);
-	NVIC_EnableIRQ(USART_IRQ);
-}
+```cpp
+void USART1_init(void)
 ```
 
 Defined in include/ecUART2.h:158
@@ -2561,96 +1988,8 @@ USART1_init();               // PA_9 = TX, PA_10 = RX, 9600 bps
 
 ### USART2_init
 
-```c
-void USART2_init(void){
-// ********************** USART 2 ***************************
-// PA2 = USART2_TX
-// PA3 = USART2_RX
-// Alternate function(AF7), High Speed, Push pull, Pull up
-// **********************************************************
-// USART_init(USART2, PA_2, PA_3, 9600);
-
-////////////////////////////////////////////
-//  for USART2  ONLY
-////////////////////////////////////////////
-  USART_TypeDef *USARTx= USART2;
-
-//1. GPIO Pin for TX and RX
-// Default : PA_2 = USART2_TX, PA_3 = USART2_RX
-	PinName_t pin_GPIO_TX  =PA_2;
-	PinName_t pin_GPIO_RX  =PA_3;
-
-	GPIO_TypeDef *GPIO_TX;
-	unsigned int pinTX;
-	ecPinmap(pin_GPIO_TX, &GPIO_TX, &pinTX);
-	GPIO_TypeDef *GPIO_RX;
-	unsigned int pinRX;
-	ecPinmap(pin_GPIO_RX, &GPIO_RX, &pinRX);
-
-	// Alternate Function, Push-Pull, No Pull-up/down, High speed
-	GPIO_init(pin_GPIO_TX, AF);
-	GPIO_otype(pin_GPIO_TX, PUSH_PULL);
-	GPIO_pupd(pin_GPIO_TX, NPUPD);
-	GPIO_ospeed(pin_GPIO_TX, HIGHSPEED);
-
-	GPIO_init(pin_GPIO_RX, AF);
-	GPIO_otype(pin_GPIO_RX, PUSH_PULL);
-	GPIO_pupd(pin_GPIO_RX, NPUPD);
-	GPIO_ospeed(pin_GPIO_RX, HIGHSPEED);
-
- 	// Set Alternate Function Register for USARTx
-	//   AF7 - USART1, USART2
-	//   AF8 - USART6
-	uint32_t AF_num = (USARTx == USART6) ? 8 : 7;
-	if (pinTX < 8) { GPIO_TX->AFR[0] &= ~(0xFUL << (4*pinTX));     GPIO_TX->AFR[0] |= AF_num << (4*pinTX); }
-	else           { GPIO_TX->AFR[1] &= ~(0xFUL << (4*(pinTX-8))); GPIO_TX->AFR[1] |= AF_num << (4*(pinTX-8)); }
-	if (pinRX < 8) { GPIO_RX->AFR[0] &= ~(0xFUL << (4*pinRX));     GPIO_RX->AFR[0] |= AF_num << (4*pinRX); }
-	else           { GPIO_RX->AFR[1] &= ~(0xFUL << (4*(pinRX-8))); GPIO_RX->AFR[1] |= AF_num << (4*(pinRX-8)); }
-
-
-//2. USARTx (x=2,1,6) configuration
-  // Enable USART peripheral clock
-  	//      USART2   = APB1
-  	//      USART1,6 = APB2
-	USART_clock_enable(USARTx);
-
-  // Disable USARTx.
-	USARTx->CR1 &= ~USART_CR1_UE;			// disable while configuring
-
-  // No Parity / 8-bit word length / Oversampling x16
-	USARTx->CR1 &= ~USART_CR1_M;			// 8 data bits
-	USARTx->CR1 &= ~USART_CR1_PCE;			// no parity
-	USARTx->CR1 &= ~USART_CR1_OVER8;		// oversampling by 16
-	USARTx->CR2 &= ~USART_CR2_STOP;			// 1 stop bit
-
-  // BAUD RATE (Default: 9600)
-  //    Baud rate : BRR[15:4]=mantissa, BRR[3:0]=fraction (1/16 steps)
-  //    USARTDIV = f_APB1 / (16 x baud)
-  //    USART_baud(USARTx, 9600);
-  uint32_t baud=  9600;				// Default baud rate for USART2
-  float fCK      = (float)EC_SYSCLK / 2;		// APB1 : 84MHz PLL -> 42MHz
-  float USARTDIV = fCK / 16 / baud;
-  uint32_t MNT   = (uint32_t)USARTDIV;
-  uint32_t FRC   = round((USARTDIV - MNT) * 16);
-	if (FRC > 15) { MNT += 1; FRC = 0; }		// carry into the mantissa
-	USARTx->BRR = (MNT << 4) | FRC;
-
-  // Enable TX, RX
-	USARTx->CR1 |= (USART_CR1_TE | USART_CR1_RE);	// transmitter + receiver
-  // Enable USART
-  	USARTx->CR1 |= USART_CR1_UE;
-
-// 3. RX interrupt (data ready to be read)
-  // Enable RXNE interrupt
-	USARTx->CR1 |= USART_CR1_RXNEIE;
-  // USART2 IRQ
-	uint32_t USART_IRQ = USART2_IRQn;
-	if (USARTx == USART1){
-		USART_IRQ = USART1_IRQn;
-	}
-	NVIC_SetPriority(USART_IRQ, 1);
-	NVIC_EnableIRQ(USART_IRQ);
-}
+```cpp
+void USART2_init(void)
 ```
 
 Defined in include/ecUART2.h:170
@@ -2675,10 +2014,8 @@ printf("Hello Nucleo\r\n");  // printf() is sent to USART2
 
 ### USART1_write
 
-```c
-void USART1_write(uint8_t* buffer, uint32_t nBytes){
-	USART_write(USART1, buffer, nBytes);
-}
+```cpp
+void USART1_write(uint8_t * buffer, uint32_t nBytes)
 ```
 
 Defined in include/ecUART2.h:184
@@ -2705,10 +2042,8 @@ USART1_write(msg, sizeof(msg) - 1);
 
 ### USART2_write
 
-```c
-void USART2_write(uint8_t* buffer, uint32_t nBytes){
-	USART_write(USART2, buffer, nBytes);
-}
+```cpp
+void USART2_write(uint8_t * buffer, uint32_t nBytes)
 ```
 
 Defined in include/ecUART2.h:196
@@ -2735,10 +2070,8 @@ USART2_write(msg, sizeof(msg) - 1);
 
 ### USART1_read
 
-```c
-uint8_t USART1_read(void){
-	return USART_read(USART1);
-}
+```cpp
+uint8_t USART1_read(void)
 ```
 
 Defined in include/ecUART2.h:211
@@ -2765,10 +2098,8 @@ void USART1_IRQHandler(void) {
 
 ### USART2_read
 
-```c
-uint8_t USART2_read(void){
-	return USART_read(USART2);
-}
+```cpp
+uint8_t USART2_read(void)
 ```
 
 Defined in include/ecUART2.h:226
@@ -2795,10 +2126,8 @@ void USART2_IRQHandler(void) {
 
 ### is_USART1_RXNE
 
-```c
-uint32_t is_USART1_RXNE(void){
-	return is_USART_RXNE(USART1);
-}
+```cpp
+uint32_t is_USART1_RXNE(void)
 ```
 
 Defined in include/ecUART2.h:243
@@ -2825,10 +2154,8 @@ void USART1_IRQHandler(void) {
 
 ### is_USART2_RXNE
 
-```c
-uint32_t is_USART2_RXNE(void){
-	return is_USART_RXNE(USART2);
-}
+```cpp
+uint32_t is_USART2_RXNE(void)
 ```
 
 Defined in include/ecUART2.h:258
@@ -2855,15 +2182,8 @@ void USART2_IRQHandler(void) {
 
 ### USART_clock_enable
 
-```c
-void USART_clock_enable(USART_TypeDef* USARTx){
-	if (USARTx == USART1)
-		RCC->APB2ENR |= RCC_APB2ENR_USART1EN; 	// Enabl lock: AHB clock = 84MHz)
-	else if(USARTx == USART2)
-		RCC->APB1ENR |= RCC_APB1ENR_USART2EN;  	// Enable USART 2 clock (APB1 clock: AHB clock/2 = 42MHz)
-	else
-		RCC->APB2ENR |= RCC_APB2ENR_USART6EN;  	// Enable USART 6 clock (APB2 clock: AHB clock = 84MHz)
-}
+```cpp
+void USART_clock_enable(USART_TypeDef * USARTx)
 ```
 
 Defined in include/ecUART2.h:270
@@ -2888,23 +2208,8 @@ USART_clock_enable(USART6);      // APB2
 
 ### USART_write
 
-```c
-void USART_write(USART_TypeDef * USARTx, uint8_t *buffer, uint32_t nBytes) {
-	// TXE is set by hardware when the content of the TDR
-	// register has been transferred into the shift register.
-	int i;
-	for (i = 0; i < nBytes; i++) {
-		// wait until TXE (TX empty) bit is set
-		while (!(USARTx->SR & USART_SR_TXE));
-		// Writing USART_DR automatically clears the TXE flag
-		USARTx->DR = buffer[i] & 0xFF;
-		USART_delay(300);
-	}
-	// wait until TC bit is set
-	while (!(USARTx->SR & USART_SR_TC));
-	// TC bit clear
-	USARTx->SR &= ~USART_SR_TC;
-}
+```cpp
+void USART_write(USART_TypeDef * USARTx, uint8_t * buffer, uint32_t nBytes)
 ```
 
 Defined in include/ecUART2.h:283
@@ -2932,13 +2237,8 @@ USART_write(USART6, msg, sizeof(msg) - 1);
 
 ### USART_read
 
-```c
-uint8_t USART_read(USART_TypeDef * USARTx){
-	// Wait until RXNE (RX not empty) bit is set by HW -->Read to read
-	while (is_USART_RXNE(USARTx) == 0);
-	// Reading USART_DR automatically clears the RXNE flag
-	return ((uint8_t)(USARTx->DR & 0xFF));
-}
+```cpp
+uint8_t USART_read(USART_TypeDef * USARTx)
 ```
 
 Defined in include/ecUART2.h:299
@@ -2971,10 +2271,8 @@ void USART6_IRQHandler(void) {
 
 ### is_USART_RXNE
 
-```c
-uint32_t is_USART_RXNE(USART_TypeDef * USARTx){
-	return (USARTx->SR & USART_SR_RXNE) != 0;
-}
+```cpp
+uint32_t is_USART_RXNE(USART_TypeDef * USARTx)
 ```
 
 Defined in include/ecUART2.h:315
@@ -3007,11 +2305,8 @@ void USART6_IRQHandler(void) {
 
 ### USART_delay
 
-```c
-void USART_delay(uint32_t us) {
-   uint32_t time = 100*us/7;
-   while(--time);
-}
+```cpp
+void USART_delay(uint32_t us)
 ```
 
 Defined in include/ecUART2.h:325
@@ -3035,3 +2330,1110 @@ USART_delay(300);                // about 300 us (not calibrated)
 # MCU Initialization
 
 One-call default setup of the MCU.
+
+<a id="inputcapturedriver"></a>
+
+# Input Capture Driver
+
+Capture the timer counter value at a pin edge to measure pulse width, period, or time interval (e.g., ultrasonic echo).
+
+Supported pins use the same TIMx_CHn map as the PWM driver (PA0, PA1, PA5, PA6, PA8\~PA10, PA15, PB3\~PB10, PC6\~PC9).
+
+## Functions
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`ICAP_init`](#icap_init)  | Initialize input capture on a pin with its own channel (ICn = TIn) and a 1 usec tick. |
+| `void` | [`ICAP_ICn_init`](#icap_icn_init)  | Initialize input capture on a pin with a user-selected IC channel and a 1 usec tick. |
+| `void` | [`ICAP_tick`](#icap_tick)  | Set the counter tick of the capture timer in usec. ARR is kept at maximum. |
+| `uint32_t` | [`ICAP_read`](#icap_read)  | Read the captured counter value of an IC channel. |
+| `uint32_t` | [`is_CCIF`](#is_ccif)  | Check the capture/compare interrupt flag (CCnIF) of an IC channel. |
+| `void` | [`clear_CCIF`](#clear_ccif)  | Clear the capture/compare interrupt flag (CCnIF) of an IC channel. |
+| `void` | [`ICAP_pinmap`](#icap_pinmap)  | Internal: find the timer and channel (TIn) connected to a pin. |
+| `void` | [`ICAP_filter`](#icap_filter)  | Internal: set the digital input filter (ICnF) of one IC channel. |
+| `void` | [`ICAP_ICn_select`](#icap_icn_select)  | Internal: connect a timer input (TIn) to an input capture channel (ICn) via CCnS. |
+
+---
+
+<a id="icap_init"></a>
+
+### ICAP_init
+
+```cpp
+void ICAP_init(PinName_t pinName, uint32_t edge_type)
+```
+
+Defined in include/ecCAP2.h:85
+
+Initialize input capture on a pin with its own channel (ICn = TIn) and a 1 usec tick.
+
+> [!NOTE]
+> Enables the capture interrupt (CCnIE), the update interrupt (UIE), and NVIC (priority 2). Handle both in TIMx_IRQHandler(): UIF for overflow counting, CCnIF for captures.
+
+
+> [!NOTE]
+> ARR is set to the maximum (0xFFFF, or 0xFFFFFFFF for TIM2/TIM5).
+
+
+#### Example
+
+```cpp
+ICAP_init(PB_6, IC_RISE);          // TIM4_CH1 → IC1, capture rising edge
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Capture input pin (e.g., PB_6 → TIM4_CH1 → IC1) |
+| `edge_type` | `uint32_t` | IC_RISE, IC_FALL, or IC_BOTH |
+
+---
+
+<a id="icap_icn_init"></a>
+
+### ICAP_ICn_init
+
+```cpp
+void ICAP_ICn_init(PinName_t pinName, uint32_t edge_type, uint32_t ICn)
+```
+
+Defined in include/ecCAP2.h:103
+
+Initialize input capture on a pin with a user-selected IC channel and a 1 usec tick.
+
+> [!NOTE]
+> Use two ICs on one pin to capture both edges into separate registers (e.g., rising → IC1, falling → IC2) for pulse-width measurement.
+
+
+> [!NOTE]
+> Call order: [ICAP_init()](#icap_init) → [ICAP_ICn_init()](#icap_icn_init) → [ICAP_tick()](#icap_tick) (last).
+
+
+#### Example
+
+```cpp
+ICAP_init(PB_6, IC_RISE);                 // TI1 → IC1 : rising edge
+ICAP_ICn_init(PB_6, IC_FALL, IC_2);       // TI1 → IC2 : falling edge
+ICAP_tick(PB_6, 10);                      // 1 tick = 10 usec  <- call last
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Capture input pin (TIn is decided by the pin) |
+| `edge_type` | `uint32_t` | IC_RISE, IC_FALL, or IC_BOTH |
+| `ICn` | `uint32_t` | IC_1 \~ IC_4. Either the same channel (ICn = TIn) or its pair (IC1↔TI2, IC2↔TI1, IC3↔TI4, IC4↔TI3) |
+
+---
+
+<a id="icap_tick"></a>
+
+### ICAP_tick
+
+```cpp
+void ICAP_tick(PinName_t pinName, uint32_t usec)
+```
+
+Defined in include/ecCAP2.h:118
+
+Set the counter tick of the capture timer in usec. ARR is kept at maximum.
+
+> [!NOTE]
+> Call this LAST: [ICAP_ICn_init()](#icap_icn_init) resets the tick to 1 usec.
+
+
+> [!NOTE]
+> Measured time [usec] = (captured ticks) * usec.
+
+
+#### Example
+
+```cpp
+ICAP_init(PB_6, IC_RISE);
+ICAP_ICn_init(PB_6, IC_FALL, IC_2);
+ICAP_tick(PB_6, 10);               // 1 tick = 10 usec, 16-bit overflow every 655.36 msec
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Capture input pin (selects the timer) |
+| `usec` | `uint32_t` | One tick [usec]. PSC is 16-bit → 1 \~ 780 usec at 84 MHz (0 is changed to 1) |
+
+---
+
+<a id="icap_read"></a>
+
+### ICAP_read
+
+```cpp
+uint32_t ICAP_read(PinName_t pinName, uint32_t ICn)
+```
+
+Defined in include/ecCAP2.h:149
+
+Read the captured counter value of an IC channel.
+
+#### Returns
+Captured CCRn value [ticks] 
+
+> [!NOTE]
+> Reading CCRn also clears its CCnIF flag in hardware.
+
+
+#### Example
+
+```cpp
+volatile uint32_t ovf_cnt = 0;
+volatile float time1 = 0, time2 = 0, timeInterval = 0;   // [usec]
+
+void TIM4_IRQHandler(void) {
+    if (is_UIF(TIM4)) {                        // counter overflow
+        ovf_cnt++;
+        clear_UIF(TIM4);
+    }
+    if (is_CCIF(TIM4, IC_1)) {                 // rising edge
+        time1 = ICAP_read(PB_6, IC_1);
+        clear_CCIF(TIM4, IC_1);
+    }
+    else if (is_CCIF(TIM4, IC_2)) {            // falling edge
+        time2 = ICAP_read(PB_6, IC_2);
+        timeInterval = ((time2 - time1) + ovf_cnt * (TIM4->ARR + 1)) * 10;  // 10 usec tick
+        ovf_cnt = 0;
+        clear_CCIF(TIM4, IC_2);
+    }
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Capture input pin (selects the timer) |
+| `ICn` | `uint32_t` | IC_1 \~ IC_4 |
+
+---
+
+<a id="is_ccif"></a>
+
+### is_CCIF
+
+```cpp
+uint32_t is_CCIF(TIM_TypeDef * TIMx, uint32_t ICn)
+```
+
+Defined in include/ecCAP2.h:171
+
+Check the capture/compare interrupt flag (CCnIF) of an IC channel.
+
+#### Returns
+1 if a capture occurred, 0 otherwise 
+
+> [!NOTE]
+> Use inside TIMx_IRQHandler() to find which channel captured.
+
+
+#### Example
+
+```cpp
+void TIM4_IRQHandler(void) {
+    if (is_CCIF(TIM4, IC_1)) {
+        time1 = ICAP_read(PB_6, IC_1);
+        clear_CCIF(TIM4, IC_1);
+    }
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Capture timer |
+| `ICn` | `uint32_t` | IC_1 \~ IC_4 |
+
+---
+
+<a id="clear_ccif"></a>
+
+### clear_CCIF
+
+```cpp
+void clear_CCIF(TIM_TypeDef * TIMx, uint32_t ICn)
+```
+
+Defined in include/ecCAP2.h:186
+
+Clear the capture/compare interrupt flag (CCnIF) of an IC channel.
+
+> [!NOTE]
+> Call at the end of each capture branch in the IRQ handler.
+
+
+#### Example
+
+```cpp
+if (is_CCIF(TIM4, IC_2)) {
+    time2 = ICAP_read(PB_6, IC_2);
+    clear_CCIF(TIM4, IC_2);
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Capture timer |
+| `ICn` | `uint32_t` | IC_1 \~ IC_4 |
+
+---
+
+<a id="icap_pinmap"></a>
+
+### ICAP_pinmap
+
+```cpp
+void ICAP_pinmap(PinName_t pinName, TIM_TypeDef ** TIMx, int * chN)
+```
+
+Defined in include/ecCAP2.h:204
+
+Internal: find the timer and channel (TIn) connected to a pin.
+
+#### Example
+
+```cpp
+TIM_TypeDef *TIMx;
+int TIn;
+ICAP_pinmap(PB_6, &TIMx, &TIn);    // TIMx = TIM4, TIn = 1
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Pin to look up |
+| `TIMx` | `TIM_TypeDef **` | Timer of the pin |
+| `chN` | `int *` | Timer input channel TIn, 1 \~ 4 |
+
+---
+
+<a id="icap_filter"></a>
+
+### ICAP_filter
+
+```cpp
+void ICAP_filter(TIM_TypeDef * TIMx, uint32_t ICn, uint16_t filterOpt)
+```
+
+Defined in include/ecCAP2.h:218
+
+Internal: set the digital input filter (ICnF) of one IC channel.
+
+> [!NOTE]
+> Only the given channel is written, so output channels of the same timer are not affected (ICxF bits share the position of OCxM bits in CCMRx).
+
+
+#### Example
+
+```cpp
+ICAP_filter(TIM4, IC_1, IC_FILTER_0);  // remove the default 8-sample filter on IC1
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Capture timer |
+| `ICn` | `uint32_t` | IC_1 \~ IC_4 |
+| `filterOpt` | `uint16_t` | IC_FILTER_0 \~ IC_FILTER_3 |
+
+---
+
+<a id="icap_icn_select"></a>
+
+### ICAP_ICn_select
+
+```cpp
+void ICAP_ICn_select(TIM_TypeDef * TIMx, uint32_t TIn, uint32_t ICn)
+```
+
+Defined in include/ecCAP2.h:232
+
+Internal: connect a timer input (TIn) to an input capture channel (ICn) via CCnS.
+
+> [!NOTE]
+> ICn = TIn → CCnS = 01 (direct). ICn ≠ TIn → CCnS = 10 (paired input: IC1↔TI2, IC2↔TI1, IC3↔TI4, IC4↔TI3).
+
+
+#### Example
+
+```cpp
+ICAP_ICn_select(TIM4, 1, IC_2);    // TI1 → IC2 (CC2S = 10)
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Capture timer |
+| `TIn` | `uint32_t` | Timer input channel of the pin, 1 \~ 4 |
+| `ICn` | `uint32_t` | IC_1 \~ IC_4 |
+
+<a id="pwmdriver"></a>
+
+# PWM Driver
+
+Generate PWM on a GPIO pin using a timer output-compare channel: period, duty ratio, and pulse width.
+
+Supported pins (TIMx_CHn): 
+Port  |Pin → Timer / Channel
+--------- | ---------
+GPIOA  |PA0 TIM2_CH1, PA1 TIM2_CH2, PA5 TIM2_CH1, PA6 TIM3_CH1, PA8 TIM1_CH1, PA9 TIM1_CH2, PA10 TIM1_CH3, PA15 TIM2_CH1
+GPIOB  |PB3 TIM2_CH2, PB4 TIM3_CH1, PB5 TIM3_CH2, PB6 TIM4_CH1, PB7 TIM4_CH2, PB8 TIM4_CH3, PB9 TIM4_CH4, PB10 TIM2_CH3
+GPIOC  |PC6 TIM3_CH1, PC7 TIM3_CH2, PC8 TIM3_CH3, PC9 TIM3_CH4
+
+## Functions
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`PWM_init_config`](#pwm_init_config)  | Internal helper: configure the pin as AF, set up the timer, and start PWM. |
+| `void` | [`PWM_duty`](#pwm_duty)  | Set the duty ratio of a PWM pin. |
+| `void` | [`PWM_init`](#pwm_init)  | Initialize PWM with the period in msec (low frequency, 1 kHz or below). |
+| `void` | [`PWM_init_us`](#pwm_init_us)  | Initialize PWM with the period in usec (high frequency, 1 kHz \~ 100 kHz). |
+| `void` | [`PWM_pulsewidth`](#pwm_pulsewidth)  | Set the pulse width (high time) of a PWM pin in msec. |
+| `void` | [`PWM_pulsewidth_us`](#pwm_pulsewidth_us)  | Set the pulse width (high time) of a PWM pin in usec. |
+| `void` | [`PWM_mode_config`](#pwm_mode_config)  | Internal: set the output-compare mode of a timer channel to PWM. |
+| `void` | [`PWM_pinmap`](#pwm_pinmap)  | Internal: find the timer and channel connected to a pin. |
+
+---
+
+<a id="pwm_init_config"></a>
+
+### PWM_init_config
+
+```cpp
+void PWM_init_config(PinName_t pinName, uint32_t usec)
+```
+
+Defined in include/ecPWM2.h:71
+
+Internal helper: configure the pin as AF, set up the timer, and start PWM.
+
+> [!NOTE]
+> Used by [PWM_init()](#pwm_init) and [PWM_init_us()](#pwm_init_us). Call those instead.
+
+
+> [!NOTE]
+> Sets AF1 (TIM1, TIM2) or AF2 (TIM3, TIM4), PWM mode 1, active high, 50% duty.
+
+
+> [!NOTE]
+> TIM2/TIM5 or period <= 65,536 usec → [TIM_init_us()](api-TIM.md#tim_init_us) (1 usec tick). Otherwise (16-bit timer, long period) → [TIM_init_ms()](api-TIM.md#tim_init_ms) (0.1 msec tick).
+
+
+> [!NOTE]
+> Returns without doing anything if the pin has no PWM channel.
+
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | PWM output pin (see the pin table above) |
+| `usec` | `uint32_t` | PWM period [usec] |
+
+---
+
+<a id="pwm_duty"></a>
+
+### PWM_duty
+
+```cpp
+void PWM_duty(PinName_t pinName, float duty)
+```
+
+Defined in include/ecPWM2.h:84
+
+Set the duty ratio of a PWM pin.
+
+> [!NOTE]
+> CCR = (ARR + 1) * duty. Assumes PWM mode 1.
+
+
+#### Example
+
+```cpp
+PWM_init(PA_5, 1);                 // 1 msec period (1 kHz)
+PWM_duty(PA_5, 0.25f);             // 25% duty → LED brightness 25%
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | PWM output pin |
+| `duty` | `float` | Duty ratio, 0.0 \~ 1.0 (clamped to this range) |
+
+---
+
+<a id="pwm_init"></a>
+
+### PWM_init
+
+```cpp
+void PWM_init(PinName_t pinName, uint32_t msec)
+```
+
+Defined in include/ecPWM2.h:105
+
+Initialize PWM with the period in msec (low frequency, 1 kHz or below).
+
+> [!NOTE]
+> Default: PWM mode 1, active high, 50% duty.
+
+
+#### Example
+
+```cpp
+PWM_init(PA_1, 20);                // RC servo: 20 msec period (50 Hz)
+PWM_pulsewidth_us(PA_1, 1500);     // 1.5 msec pulse → servo center
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | PWM output pin (see the pin table above) |
+| `msec` | `uint32_t` | PWM period [msec]. 0 is changed to 1. TIM2/TIM5 (32-bit): 1 \~ 4,294,967 msec, TIM1/TIM3/TIM4 (16-bit): 1 \~ 6,553 msec |
+
+---
+
+<a id="pwm_init_us"></a>
+
+### PWM_init_us
+
+```cpp
+void PWM_init_us(PinName_t pinName, uint32_t usec)
+```
+
+Defined in include/ecPWM2.h:119
+
+Initialize PWM with the period in usec (high frequency, 1 kHz \~ 100 kHz).
+
+> [!NOTE]
+> Default: PWM mode 1, active high, 50% duty. 1 tick = 1 usec, so the duty resolution is 1/usec (e.g., 10 usec period → 10 steps).
+
+
+#### Example
+
+```cpp
+PWM_init_us(PB_6, 50);             // DC motor: 50 usec period (20 kHz)
+PWM_duty(PB_6, 0.6f);              // 60% speed
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | PWM output pin (see the pin table above) |
+| `usec` | `uint32_t` | PWM period [usec]. Minimum 10 usec (100 kHz); smaller values are changed to 10. |
+
+---
+
+<a id="pwm_pulsewidth"></a>
+
+### PWM_pulsewidth
+
+```cpp
+void PWM_pulsewidth(PinName_t pinName, uint32_t pulse_width_ms)
+```
+
+Defined in include/ecPWM2.h:137
+
+Set the pulse width (high time) of a PWM pin in msec.
+
+> [!NOTE]
+> Converted to a duty ratio using the current PSC and ARR, then [PWM_duty()](#pwm_duty) is called.
+
+
+#### Example
+
+```cpp
+PWM_init(PA_0, 100);               // 100 msec period
+PWM_pulsewidth(PA_0, 30);          // 30 msec high → 30% duty
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | PWM output pin |
+| `pulse_width_ms` | `uint32_t` | Pulse width [msec], must be <= PWM period |
+
+---
+
+<a id="pwm_pulsewidth_us"></a>
+
+### PWM_pulsewidth_us
+
+```cpp
+void PWM_pulsewidth_us(PinName_t pinName, uint32_t pulse_width_us)
+```
+
+Defined in include/ecPWM2.h:151
+
+Set the pulse width (high time) of a PWM pin in usec.
+
+> [!NOTE]
+> Converted to a duty ratio using the current PSC and ARR, then [PWM_duty()](#pwm_duty) is called.
+
+
+#### Example
+
+```cpp
+PWM_init(PA_1, 20);                // RC servo: 20 msec period
+PWM_pulsewidth_us(PA_1, 500);      // 0.5 msec → 0 deg
+PWM_pulsewidth_us(PA_1, 2500);     // 2.5 msec → 180 deg
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | PWM output pin |
+| `pulse_width_us` | `uint32_t` | Pulse width [usec], must be <= PWM period |
+
+---
+
+<a id="pwm_mode_config"></a>
+
+### PWM_mode_config
+
+```cpp
+void PWM_mode_config(TIM_TypeDef * TIMx, int chN, uint32_t mode)
+```
+
+Defined in include/ecPWM2.h:171
+
+Internal: set the output-compare mode of a timer channel to PWM.
+
+> [!NOTE]
+> Also enables CCR preload, sets active-high polarity, CCR = ARR/2 (50% duty), and enables the channel output (CCxE).
+
+
+#### Example
+
+```cpp
+PWM_init(PA_5, 1);
+PWM_mode_config(TIM2, 1, EC_PWM_MODE2);   // invert the output on TIM2_CH1
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer |
+| `chN` | `int` | Channel number, 1 \~ 4 |
+| `mode` | `uint32_t` | EC_PWM_MODE1 (OCxM = 110) or EC_PWM_MODE2 (OCxM = 111) |
+
+---
+
+<a id="pwm_pinmap"></a>
+
+### PWM_pinmap
+
+```cpp
+void PWM_pinmap(PinName_t pinName, TIM_TypeDef ** TIMx, int * chN)
+```
+
+Defined in include/ecPWM2.h:186
+
+Internal: find the timer and channel connected to a pin.
+
+> [!NOTE]
+> Only TIM1\~TIM4 are mapped. See the pin table above.
+
+
+#### Example
+
+```cpp
+TIM_TypeDef *TIMx = NULL;
+int ch = 0;
+PWM_pinmap(PB_6, &TIMx, &ch);      // TIMx = TIM4, ch = 1
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `pinName` | [`PinName_t`](api-PinNames.md#pinname_t) | Pin to look up |
+| `TIMx` | `TIM_TypeDef **` | Timer of the pin (unchanged if the pin has no PWM channel) |
+| `chN` | `int *` | Channel number 1 \~ 4 |
+
+<a id="timerdriver"></a>
+
+# Timer Driver
+
+Configure timer counters (PSC, ARR, direction), the update interrupt (UI), and the NVIC for TIM1\~TIM5, TIM9\~TIM11.
+
+## Functions
+
+| Return | Name | Description |
+|--------|------|-------------|
+| `void` | [`TIM_UI_init_ms`](#tim_ui_init_ms)  | Initialize a timer with a period in msec and enable its update interrupt in NVIC. |
+| `void` | [`TIM_UI_init_us`](#tim_ui_init_us)  | Initialize a timer with a period in usec and enable its update interrupt in NVIC. |
+| `void` | [`TIM_UI_enable`](#tim_ui_enable)  | Enable the update interrupt (UIE) of a timer. |
+| `void` | [`TIM_UI_disable`](#tim_ui_disable)  | Disable the update interrupt (UIE) of a timer. The counter keeps running. |
+| `uint32_t` | [`is_UIF`](#is_uif)  | Check the update interrupt flag (UIF) of a timer. |
+| `void` | [`clear_UIF`](#clear_uif)  | Clear the update interrupt flag (UIF) of a timer. |
+| `void` | [`TIM_init_ms`](#tim_init_ms)  | Enable the timer clock, set the period in msec, set up-counting, and start the counter. |
+| `void` | [`TIM_init_us`](#tim_init_us)  | Enable the timer clock, set the period in usec, set up-counting, and start the counter. |
+| `void` | [`TIM_period_ms`](#tim_period_ms)  | Set the counter period in msec (PSC and ARR only). |
+| `void` | [`TIM_period_us`](#tim_period_us)  | Set the counter period in usec (PSC and ARR only). |
+| `void` | [`TIM_period_tick`](#tim_period_tick)  | Set both the tick size and the counter period in usec. |
+| `uint32_t` | [`get_TIM_IRQn`](#get_tim_irqn)  | Get the NVIC IRQ number of a timer. |
+| `void` | [`TIM_clock_enable`](#tim_clock_enable)  | Enable the RCC clock of a timer. |
+
+---
+
+<a id="tim_ui_init_ms"></a>
+
+### TIM_UI_init_ms
+
+```cpp
+void TIM_UI_init_ms(TIM_TypeDef * TIMx, uint32_t msec)
+```
+
+Defined in include/ecTIM2.h:67
+
+Initialize a timer with a period in msec and enable its update interrupt in NVIC.
+
+> [!NOTE]
+> Counter clock f_cnt = 10 kHz. NVIC priority is fixed at 2.
+
+
+> [!NOTE]
+> Calls [TIM_init_ms()](#tim_init_ms) → [TIM_UI_enable()](#tim_ui_enable) → NVIC enable.
+
+
+#### Example
+
+```cpp
+volatile uint32_t count = 0;
+
+TIM_UI_init_ms(TIM3, 1);           // update interrupt every 1 msec
+
+void TIM3_IRQHandler(void) {
+    if (is_UIF(TIM3)) {
+        count++;
+        clear_UIF(TIM3);
+    }
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to use (TIM1\~TIM5, TIM9\~TIM11) |
+| `msec` | `uint32_t` | Update interrupt period [msec]. 16-bit timer: 1 \~ 6,553 msec |
+
+---
+
+<a id="tim_ui_init_us"></a>
+
+### TIM_UI_init_us
+
+```cpp
+void TIM_UI_init_us(TIM_TypeDef * TIMx, uint32_t usec)
+```
+
+Defined in include/ecTIM2.h:87
+
+Initialize a timer with a period in usec and enable its update interrupt in NVIC.
+
+> [!NOTE]
+> Counter clock f_cnt = 1 MHz. NVIC priority is fixed at 2.
+
+
+> [!NOTE]
+> Calls [TIM_init_us()](#tim_init_us) → [TIM_UI_enable()](#tim_ui_enable) → NVIC enable.
+
+
+#### Example
+
+```cpp
+TIM_UI_init_us(TIM2, 100);         // update interrupt every 100 usec (10 kHz)
+
+void TIM2_IRQHandler(void) {
+    if (is_UIF(TIM2)) {
+        // sampling task
+        clear_UIF(TIM2);
+    }
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to use (TIM1\~TIM5, TIM9\~TIM11) |
+| `usec` | `uint32_t` | Update interrupt period [usec]. 16-bit timer: 1 \~ 65,535 usec |
+
+---
+
+<a id="tim_ui_enable"></a>
+
+### TIM_UI_enable
+
+```cpp
+void TIM_UI_enable(TIM_TypeDef * TIMx)
+```
+
+Defined in include/ecTIM2.h:100
+
+Enable the update interrupt (UIE) of a timer.
+
+> [!NOTE]
+> The UIF flag is cleared first, so a stale flag does not fire immediately.
+
+
+#### Example
+
+```cpp
+TIM_UI_disable(TIM3);              // pause the periodic task
+// ...
+TIM_UI_enable(TIM3);               // resume
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to enable |
+
+---
+
+<a id="tim_ui_disable"></a>
+
+### TIM_UI_disable
+
+```cpp
+void TIM_UI_disable(TIM_TypeDef * TIMx)
+```
+
+Defined in include/ecTIM2.h:110
+
+Disable the update interrupt (UIE) of a timer. The counter keeps running.
+
+#### Example
+
+```cpp
+TIM_UI_disable(TIM3);              // stop the periodic interrupt
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to disable |
+
+---
+
+<a id="is_uif"></a>
+
+### is_UIF
+
+```cpp
+uint32_t is_UIF(TIM_TypeDef * TIMx)
+```
+
+Defined in include/ecTIM2.h:127
+
+Check the update interrupt flag (UIF) of a timer.
+
+#### Returns
+1 if an update event (overflow/underflow) occurred, 0 otherwise 
+
+> [!NOTE]
+> Use inside the timer IRQ handler.
+
+
+#### Example
+
+```cpp
+void TIM3_IRQHandler(void) {
+    if (is_UIF(TIM3)) {            // update event?
+        GPIO_write(PA_5, !GPIO_read(PA_5));
+        clear_UIF(TIM3);
+    }
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to check |
+
+---
+
+<a id="clear_uif"></a>
+
+### clear_UIF
+
+```cpp
+void clear_UIF(TIM_TypeDef * TIMx)
+```
+
+Defined in include/ecTIM2.h:143
+
+Clear the update interrupt flag (UIF) of a timer.
+
+> [!NOTE]
+> Call at the end of the IRQ handler. If not cleared, the handler is re-entered repeatedly.
+
+
+#### Example
+
+```cpp
+void TIM3_IRQHandler(void) {
+    if (is_UIF(TIM3)) {
+        // task
+        clear_UIF(TIM3);           // without this, the handler is re-entered forever
+    }
+}
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer whose UIF is cleared |
+
+---
+
+<a id="tim_init_ms"></a>
+
+### TIM_init_ms
+
+```cpp
+void TIM_init_ms(TIM_TypeDef * TIMx, uint32_t msec)
+```
+
+Defined in include/ecTIM2.h:161
+
+Enable the timer clock, set the period in msec, set up-counting, and start the counter.
+
+> [!NOTE]
+> f_cnt = 10 kHz (PSC = EC_SYSCLK / 10 kHz - 1). The update interrupt is NOT enabled. Use [TIM_UI_init_ms()](#tim_ui_init_ms) if an interrupt is needed.
+
+
+#### Example
+
+```cpp
+TIM_init_ms(TIM3, 500);            // counter overflows every 500 msec
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to use (TIM1\~TIM5, TIM9\~TIM11) |
+| `msec` | `uint32_t` | Counter period [msec]. 16-bit timer: 1 \~ 6,553 msec |
+
+---
+
+<a id="tim_init_us"></a>
+
+### TIM_init_us
+
+```cpp
+void TIM_init_us(TIM_TypeDef * TIMx, uint32_t usec)
+```
+
+Defined in include/ecTIM2.h:174
+
+Enable the timer clock, set the period in usec, set up-counting, and start the counter.
+
+> [!NOTE]
+> f_cnt = 1 MHz (PSC = EC_SYSCLK / 1 MHz - 1). The update interrupt is NOT enabled. Use [TIM_UI_init_us()](#tim_ui_init_us) if an interrupt is needed.
+
+
+#### Example
+
+```cpp
+TIM_init_us(TIM4, 1000);           // counter overflows every 1 msec, 1 tick = 1 usec
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to use (TIM1\~TIM5, TIM9\~TIM11) |
+| `usec` | `uint32_t` | Counter period [usec]. 16-bit timer: 1 \~ 65,535 usec |
+
+---
+
+<a id="tim_period_ms"></a>
+
+### TIM_period_ms
+
+```cpp
+void TIM_period_ms(TIM_TypeDef * TIMx, uint32_t msec)
+```
+
+Defined in include/ecTIM2.h:186
+
+Set the counter period in msec (PSC and ARR only).
+
+> [!NOTE]
+> f_cnt = 10 kHz, ARR = 10 * msec - 1. Clock and counter enable are not touched.
+
+
+#### Example
+
+```cpp
+TIM_period_ms(TIM3, 100);          // change the period to 100 msec at runtime
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to configure |
+| `msec` | `uint32_t` | Counter period [msec]. 16-bit timer: 1 \~ 6,553 msec |
+
+---
+
+<a id="tim_period_us"></a>
+
+### TIM_period_us
+
+```cpp
+void TIM_period_us(TIM_TypeDef * TIMx, uint32_t usec)
+```
+
+Defined in include/ecTIM2.h:198
+
+Set the counter period in usec (PSC and ARR only).
+
+> [!NOTE]
+> f_cnt = 1 MHz, ARR = usec - 1. Clock and counter enable are not touched.
+
+
+#### Example
+
+```cpp
+TIM_period_us(TIM3, 50);           // change the period to 50 usec (20 kHz)
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to configure |
+| `usec` | `uint32_t` | Counter period [usec]. 16-bit timer: 1 \~ 65,535 usec |
+
+---
+
+<a id="tim_period_tick"></a>
+
+### TIM_period_tick
+
+```cpp
+void TIM_period_tick(TIM_TypeDef * TIMx, uint32_t tick_us, uint32_t period_us)
+```
+
+Defined in include/ecTIM2.h:212
+
+Set both the tick size and the counter period in usec.
+
+> [!NOTE]
+> PSC = (EC_SYSCLK / 1 MHz) * tick_us - 1, ARR = period_us / tick_us - 1.
+
+
+> [!NOTE]
+> (period_us / tick_us) must not exceed 65,536 on a 16-bit timer.
+
+
+#### Example
+
+```cpp
+TIM_period_tick(TIM3, 10, 100000); // 1 tick = 10 usec, period = 100 msec (ARR = 9999)
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer to configure |
+| `tick_us` | `uint32_t` | One counter tick [usec]. PSC is 16-bit → 1 \~ 780 usec at 84 MHz |
+| `period_us` | `uint32_t` | Counter period [usec]. Must be a multiple of tick_us |
+
+---
+
+<a id="get_tim_irqn"></a>
+
+### get_TIM_IRQn
+
+```cpp
+uint32_t get_TIM_IRQn(TIM_TypeDef * TIMx)
+```
+
+Defined in include/ecTIM2.h:226
+
+Get the NVIC IRQ number of a timer.
+
+#### Returns
+IRQn value for NVIC_EnableIRQ() / NVIC_SetPriority() 
+
+> [!NOTE]
+> TIM1 update and TIM10 share TIM1_UP_TIM10_IRQn (TIM1_UP_TIM10_IRQHandler()). TIM9 → TIM1_BRK_TIM9_IRQn, TIM11 → TIM1_TRG_COM_TIM11_IRQn.
+
+
+#### Example
+
+```cpp
+uint32_t irq = get_TIM_IRQn(TIM2); // TIM2_IRQn
+NVIC_SetPriority(irq, 1);          // change priority after TIM_UI_init_xx()
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer (TIM1\~TIM5, TIM9\~TIM11) |
+
+---
+
+<a id="tim_clock_enable"></a>
+
+### TIM_clock_enable
+
+```cpp
+void TIM_clock_enable(TIM_TypeDef * TIMx)
+```
+
+Defined in include/ecTIM2.h:237
+
+Enable the RCC clock of a timer.
+
+> [!NOTE]
+> Called inside [TIM_init_ms()](#tim_init_ms) / [TIM_init_us()](#tim_init_us).
+
+
+#### Example
+
+```cpp
+TIM_clock_enable(TIM2);            // RCC->APB1ENR |= TIM2EN
+```
+
+#### Parameters
+
+| Parameter | Type | Description |
+|-----------|------|-------------|
+| `TIMx` | `TIM_TypeDef *` | Timer (TIM1, TIM9\~TIM11 on APB2 / TIM2\~TIM5 on APB1) |
